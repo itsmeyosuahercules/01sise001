@@ -26,5 +26,5 @@
             </form>
         @endcan
     </div>
-    <p class="mt-2 whitespace-pre-wrap text-sm leading-6">{{ $comment->body }}</p>
+    <p class="mt-2 min-w-0 whitespace-pre-wrap break-words text-sm leading-6 [overflow-wrap:anywhere]">{{ $comment->body }}</p>
 </article>

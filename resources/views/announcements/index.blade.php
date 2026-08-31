@@ -60,8 +60,8 @@
                             <span class="text-accent-hot">Belum dibaca</span>
                         @endunless
                     </div>
-                    <p class="mt-2 text-lg font-medium">{{ $announcement->title }}</p>
-                    <p class="mt-1 line-clamp-2 text-sm leading-6 text-ink/65">{{ $announcement->body }}</p>
+                    <p class="mt-2 text-lg font-medium break-words [overflow-wrap:anywhere]">{{ $announcement->title }}</p>
+                    <p class="mt-1 line-clamp-2 break-words text-sm leading-6 text-ink/65 [overflow-wrap:anywhere]">{{ $announcement->body }}</p>
                 </a>
             @empty
                 <p class="text-sm text-ink/55">Belum ada pengumuman.</p>

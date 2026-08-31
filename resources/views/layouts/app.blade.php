@@ -50,7 +50,7 @@
                     <x-nav-link :href="route('profiles.edit')" :active="request()->routeIs('profiles.*')">Profil</x-nav-link>
                 </nav>
 
-                <main class="flex-1 px-4 py-8 md:px-8">
+                <main class="min-w-0 flex-1 overflow-x-hidden px-4 py-8 md:px-8">
                     <div data-toast-host class="mb-5 empty:mb-0">
                         @if (session('status'))
                             <p class="rounded-2xl border border-navy/15 bg-navy/5 px-4 py-2.5 text-sm text-navy">{{ session('status') }}</p>

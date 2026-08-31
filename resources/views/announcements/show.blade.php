@@ -11,7 +11,7 @@
                 · {{ $announcement->published_at?->format('d M Y H:i') }}
                 · Sudah dibaca otomatis
             </p>
-            <h1 class="mt-1 text-2xl font-semibold tracking-tight">{{ $announcement->title }}</h1>
+            <h1 class="mt-1 text-2xl font-semibold tracking-tight break-words [overflow-wrap:anywhere]">{{ $announcement->title }}</h1>
             @if ($announcement->author)
                 <a href="{{ route('profiles.show', $announcement->author) }}" class="mt-2 flex items-center gap-2 text-sm text-ink/55 hover:text-navy">
                     <x-avatar :user="$announcement->author" size="sm" />
@@ -33,7 +33,7 @@
         </div>
     </div>
 
-    <article class="mt-6 whitespace-pre-wrap rounded-2xl border border-line bg-card p-6 text-sm leading-7">{{ $announcement->body }}</article>
+    <article class="mt-6 min-w-0 max-w-full overflow-hidden whitespace-pre-wrap break-words rounded-2xl border border-line bg-card p-4 text-sm leading-7 [overflow-wrap:anywhere] sm:p-6">{{ $announcement->body }}</article>
 
     @if ($announcement->attachments->isNotEmpty())
         @php
@@ -61,7 +61,7 @@
                     <ul class="mt-2 space-y-2 text-sm">
                         @foreach ($files as $attachment)
                             <li>
-                                <a href="{{ route('announcements.attachments.show', [$announcement, $attachment]) }}" class="text-navy hover:underline">
+                                <a href="{{ route('announcements.attachments.show', [$announcement, $attachment]) }}" class="break-all text-navy hover:underline [overflow-wrap:anywhere]">
                                     {{ $attachment->original_name }}
                                 </a>
                                 <span class="text-ink/45">· {{ $attachment->humanSize() }}</span>
@@ -94,9 +94,9 @@
         @include('announcements._likes')
     </div>
 
-    <section class="mt-6 rounded-2xl border border-line bg-card p-5">
+    <section class="mt-6 min-w-0 max-w-full overflow-hidden rounded-2xl border border-line bg-card p-4 sm:p-5">
         <h2 class="text-sm font-semibold">Salin ke WhatsApp</h2>
-        <textarea id="wa-text" readonly rows="7" class="mt-2 w-full rounded-xl border border-line bg-paper px-3 py-2 font-mono text-sm">{{ $announcement->whatsappText() }}</textarea>
+        <textarea id="wa-text" readonly rows="7" class="mt-2 w-full min-w-0 max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-xl border border-line bg-paper px-3 py-2 font-mono text-sm [overflow-wrap:anywhere]">{{ $announcement->whatsappText() }}</textarea>
         <x-btn variant="secondary" type="button" data-copy="#wa-text" class="mt-2">Salin teks</x-btn>
     </section>
 
