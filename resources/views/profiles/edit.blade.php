@@ -63,4 +63,32 @@
 
         <x-btn type="submit">Simpan profil</x-btn>
     </form>
+
+    <form method="POST" action="{{ route('profiles.password') }}" class="mt-6 max-w-xl space-y-4 rounded-2xl border border-line bg-card p-6">
+        @csrf
+        @method('PATCH')
+        <div>
+            <h2 class="text-lg font-semibold tracking-tight">Ganti kata sandi</h2>
+            <p class="mt-1 text-sm text-ink/60">Sandi awal kelas: <code>{{ config('kelas.default_password') }}</code>. Ganti setelah masuk pertama kali.</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium">Sandi sekarang</label>
+            <input type="password" name="current_password" required autocomplete="current-password" class="mt-1.5 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm outline-none focus:border-navy">
+            @error('current_password')
+                <p class="mt-1 text-sm text-accent-hot">{{ $message }}</p>
+            @enderror
+        </div>
+        <div>
+            <label class="block text-sm font-medium">Sandi baru</label>
+            <input type="password" name="password" required minlength="8" autocomplete="new-password" class="mt-1.5 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm outline-none focus:border-navy">
+            @error('password')
+                <p class="mt-1 text-sm text-accent-hot">{{ $message }}</p>
+            @enderror
+        </div>
+        <div>
+            <label class="block text-sm font-medium">Ulangi sandi baru</label>
+            <input type="password" name="password_confirmation" required minlength="8" autocomplete="new-password" class="mt-1.5 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm outline-none focus:border-navy">
+        </div>
+        <x-btn type="submit">Simpan sandi</x-btn>
+    </form>
 @endsection

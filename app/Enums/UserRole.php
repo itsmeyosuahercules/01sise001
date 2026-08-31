@@ -35,6 +35,11 @@ enum UserRole: string
         return $this->isKm();
     }
 
+    public function canResetPasswords(): bool
+    {
+        return $this->isKm();
+    }
+
     public function canImportMahasiswa(): bool
     {
         return $this->isKm();

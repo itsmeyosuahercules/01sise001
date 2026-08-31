@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\StoreProfilePhoto;
+use App\Http\Requests\ResetUserPasswordRequest;
+use App\Http\Requests\UpdateOwnPasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -43,6 +45,31 @@ class ProfileController extends Controller
         return redirect()
             ->route('profiles.edit')
             ->with('status', 'Profil diperbarui.');
+    }
+
+    public function updatePassword(UpdateOwnPasswordRequest $request): RedirectResponse
+    {
+        $request->user()->update([
+            'password' => $request->string('password')->toString(),
+        ]);
+
+        $request->session()->regenerate();
+
+        return redirect()
+            ->route('profiles.edit')
+            ->with('status', 'Kata sandi diganti.');
+    }
+
+    public function resetPassword(ResetUserPasswordRequest $request, User $user): RedirectResponse
+    {
+        $user->update([
+            'password' => $request->string('password')->toString(),
+        ]);
+
+        return redirect()
+            ->route('profiles.show', $user)
+            ->withFragment('sandi')
+            ->with('status', "Kata sandi {$user->name} diperbarui.");
     }
 
     public function photo(User $user): StreamedResponse

@@ -26,8 +26,14 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('profil', [ProfileController::class, 'edit'])->name('profiles.edit');
     Route::patch('profil', [ProfileController::class, 'update'])->name('profiles.update');
+    Route::patch('profil/sandi', [ProfileController::class, 'updatePassword'])
+        ->middleware('throttle:10,1')
+        ->name('profiles.password');
     Route::get('profil/{user:nim}', [ProfileController::class, 'show'])->name('profiles.show');
     Route::get('profil/{user:nim}/foto', [ProfileController::class, 'photo'])->name('profiles.photo');
+    Route::patch('profil/{user:nim}/sandi', [ProfileController::class, 'resetPassword'])
+        ->middleware('throttle:10,1')
+        ->name('profiles.password.reset');
 
     Route::get('roster', [RosterController::class, 'index'])->name('roster.index');
     Route::get('roster/export', [RosterController::class, 'export'])->name('roster.export');

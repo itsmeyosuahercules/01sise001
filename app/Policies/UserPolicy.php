@@ -21,6 +21,16 @@ class UserPolicy
         return $user->is($mahasiswa);
     }
 
+    public function updatePassword(User $user, User $mahasiswa): bool
+    {
+        return $user->is($mahasiswa);
+    }
+
+    public function resetPassword(User $user, User $mahasiswa): bool
+    {
+        return $user->role->canResetPasswords();
+    }
+
     public function export(User $user): bool
     {
         return $user->role->isPengurus();

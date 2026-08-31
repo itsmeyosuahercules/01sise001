@@ -41,6 +41,9 @@
                         <th class="px-4 py-3 font-medium">NIM</th>
                         <th class="px-4 py-3 font-medium">Nama</th>
                         <th class="px-4 py-3 font-medium">Peran</th>
+                        @can('resetPassword', auth()->user())
+                            <th class="px-4 py-3 font-medium">Sandi</th>
+                        @endcan
                     </tr>
                 </thead>
                 <tbody>
@@ -78,10 +81,19 @@
                                     {{ $member->role->label() }}
                                 @endcan
                             </td>
+                            @can('resetPassword', $member)
+                                <td class="px-4 py-3">
+                                    @if (auth()->id() === $member->id)
+                                        <a href="{{ route('profiles.edit') }}" class="text-navy hover:underline">Ganti sandi saya</a>
+                                    @else
+                                        <a href="{{ route('profiles.show', $member) }}#sandi" class="text-navy hover:underline">Setel sandi</a>
+                                    @endif
+                                </td>
+                            @endcan
                         </tr>
                     @endforeach
                     <tr data-filter-empty class="hidden">
-                        <td colspan="3" class="px-4 py-8 text-ink/50">Tidak ada anggota yang cocok.</td>
+                        <td colspan="{{ auth()->user()->can('resetPassword', auth()->user()) ? 4 : 3 }}" class="px-4 py-8 text-ink/50">Tidak ada anggota yang cocok.</td>
                     </tr>
                 </tbody>
             </table>
