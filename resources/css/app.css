@@ -1,0 +1,44 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --color-ink: #142033;
+    --color-paper: #f6f3ec;
+    --color-card: #fffcf8;
+    --color-navy: #0b2a6b;
+    --color-gold: #c9a227;
+    --color-accent: #0b2a6b;
+    --color-accent-hot: #b42318;
+    --color-line: #e4ddd0;
+}
+
+@layer base {
+    body {
+        background-color: var(--color-paper);
+        color: var(--color-ink);
+    }
+
+    a,
+    button,
+    label,
+    select,
+    summary,
+    [type='button'],
+    [type='submit'],
+    [type='reset'],
+    [type='checkbox'],
+    [type='radio'],
+    [role='button'] {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    [disabled] {
+        cursor: not-allowed;
+    }
+}
