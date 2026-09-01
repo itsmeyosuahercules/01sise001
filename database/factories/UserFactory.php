@@ -46,6 +46,13 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function wakil(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'role' => UserRole::Wakil,
+        ]);
+    }
+
     public function anggota(): static
     {
         return $this->state(fn (array $attributes): array => [
