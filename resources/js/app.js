@@ -299,21 +299,61 @@ if (attendanceForm) {
     const lngInput = attendanceForm.querySelector('[data-attendance-lng]');
     const accuracyInput = attendanceForm.querySelector('[data-attendance-accuracy]');
     const geoStatus = attendanceForm.querySelector('[data-attendance-geo]');
+    const camStatus = attendanceForm.querySelector('[data-attendance-cam]');
     const submit = attendanceForm.querySelector('[data-attendance-submit]');
     const photo = attendanceForm.querySelector('[data-attendance-photo]');
     const preview = attendanceForm.querySelector('[data-attendance-preview]');
+    const video = attendanceForm.querySelector('[data-attendance-video]');
+    const canvas = attendanceForm.querySelector('[data-attendance-canvas]');
+    const snap = attendanceForm.querySelector('[data-attendance-snap]');
+    const resnap = attendanceForm.querySelector('[data-attendance-resnap]');
+    let hasPhoto = false;
+
+    const refreshSubmit = () => {
+        submit.disabled = ! (latInput.value && lngInput.value && hasPhoto);
+    };
 
     const applyPosition = (position) => {
         latInput.value = position.coords.latitude.toFixed(7);
         lngInput.value = position.coords.longitude.toFixed(7);
         accuracyInput.value = Math.round(position.coords.accuracy || 0);
         geoStatus.textContent = `Lokasi hidup siap (±${accuracyInput.value} m).`;
-        submit.disabled = false;
+        refreshSubmit();
     };
 
     const failPosition = () => {
         geoStatus.textContent = 'Lokasi wajib hidup. Izinkan akses lokasi, lalu muat ulang halaman.';
-        submit.disabled = true;
+        refreshSubmit();
+    };
+
+    const showLive = () => {
+        video.classList.remove('hidden');
+        preview.classList.add('hidden');
+        snap.classList.remove('hidden');
+        resnap.classList.add('hidden');
+        hasPhoto = false;
+        if (photo) {
+            photo.value = '';
+        }
+        refreshSubmit();
+    };
+
+    const startCamera = async () => {
+        if (! navigator.mediaDevices?.getUserMedia) {
+            camStatus.textContent = 'Browser ini tidak mendukung kamera langsung. Buka di Chrome atau Safari.';
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 } },
+                audio: false,
+            });
+            video.srcObject = stream;
+            camStatus.textContent = 'Kamera siap. Arahkan muka, lalu tekan Jepret.';
+        } catch {
+            camStatus.textContent = 'Izinkan kamera depan, lalu muat ulang halaman.';
+        }
     };
 
     if (! navigator.geolocation) {
@@ -330,15 +370,42 @@ if (attendanceForm) {
         });
     }
 
-    photo?.addEventListener('change', () => {
-        const file = photo.files?.[0];
+    startCamera();
 
-        if (! file || ! preview) {
+    snap?.addEventListener('click', () => {
+        if (! video.videoWidth) {
+            toast('Tunggu kamera menyala dulu.', 'error');
             return;
         }
 
-        preview.src = URL.createObjectURL(file);
-        preview.classList.remove('hidden');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d')?.drawImage(video, 0, 0);
+
+        canvas.toBlob((blob) => {
+            if (! blob) {
+                toast('Jepret gagal. Coba lagi.', 'error');
+                return;
+            }
+
+            const file = new File([blob], 'wajah.jpg', { type: 'image/jpeg' });
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            photo.files = transfer.files;
+            preview.src = URL.createObjectURL(blob);
+            video.classList.add('hidden');
+            preview.classList.remove('hidden');
+            snap.classList.add('hidden');
+            resnap.classList.remove('hidden');
+            hasPhoto = true;
+            camStatus.textContent = 'Foto tersimpan. Kirim, atau jepret ulang.';
+            refreshSubmit();
+        }, 'image/jpeg', 0.9);
+    });
+
+    resnap?.addEventListener('click', () => {
+        showLive();
+        camStatus.textContent = 'Kamera siap. Arahkan muka, lalu tekan Jepret.';
     });
 
     attendanceForm.addEventListener('submit', (event) => {
@@ -346,6 +413,12 @@ if (attendanceForm) {
             event.preventDefault();
             failPosition();
             toast('Izinkan lokasi hidup sebelum mengirim hadir.', 'error');
+            return;
+        }
+
+        if (! photo.files?.length) {
+            event.preventDefault();
+            toast('Jepret foto muka dulu.', 'error');
         }
     });
 }

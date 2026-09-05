@@ -31,20 +31,21 @@
 
             <div>
                 <label class="block text-sm font-medium">Foto muka</label>
-                <input
-                    type="file"
-                    name="photo"
-                    accept="image/*"
-                    capture="user"
-                    required
-                    data-attendance-photo
-                    class="mt-1.5 w-full text-sm file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-navy file:px-3 file:py-2 file:text-white"
-                >
-                <p class="mt-1 text-xs text-ink/50">Pakai kamera depan. Foto dan lokasi diambil bersamaan. Maksimal 4 MB.</p>
+                <div class="mt-1.5 overflow-hidden rounded-2xl bg-navy/5">
+                    <video data-attendance-video autoplay muted playsinline class="aspect-[3/4] w-full -scale-x-100 object-cover"></video>
+                    <img data-attendance-preview alt="" class="hidden aspect-[3/4] w-full object-cover">
+                </div>
+                <canvas data-attendance-canvas class="hidden"></canvas>
+                <input type="file" name="photo" accept="image/jpeg" data-attendance-photo class="sr-only" tabindex="-1">
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <x-btn type="button" data-attendance-snap>Jepret</x-btn>
+                    <x-btn type="button" variant="secondary" data-attendance-resnap class="hidden">Jepret ulang</x-btn>
+                </div>
+                <p data-attendance-cam class="mt-2 text-sm text-ink/60">Menghidupkan kamera depan… Izinkan akses kamera.</p>
+                <p class="mt-1 text-xs text-ink/50">Kamera depan langsung. Jepret, cek hasilnya, lalu kirim bersama lokasi hidup.</p>
                 @error('photo')
                     <p class="mt-1 text-sm text-accent-hot">{{ $message }}</p>
                 @enderror
-                <img data-attendance-preview alt="" class="mt-3 hidden max-h-56 w-full rounded-xl object-contain bg-paper">
             </div>
 
             <p data-attendance-geo class="text-sm text-ink/60">Mengambil lokasi hidup… Izinkan akses lokasi di browser.</p>

@@ -37,6 +37,12 @@ class SaturdayAttendanceTest extends TestCase
         $photo = UploadedFile::fake()->image('wajah.jpg', 240, 240);
 
         $this->actingAs($member)
+            ->get(route('attendances.index'))
+            ->assertOk()
+            ->assertSee('Jepret')
+            ->assertDontSee('choose file', false);
+
+        $this->actingAs($member)
             ->post(route('attendances.store'), [
                 'photo' => $photo,
                 'latitude' => -6.2615123,
