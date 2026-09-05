@@ -15,4 +15,8 @@ return [
         'max_kilobytes' => 2048,
         'mimes' => ['jpg', 'jpeg', 'png', 'webp'],
     ],
+    'attendance' => [
+        'max_kilobytes' => 4096,
+        'mimes' => ['jpg', 'jpeg', 'png', 'webp'],
+    ],
 ];

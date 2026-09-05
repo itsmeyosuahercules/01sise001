@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\AbsenceStatus;
 use App\Enums\LecturerQuestionStatus;
-use App\Models\AbsenceRequest;
 use App\Models\Announcement;
 use App\Models\LecturerQuestion;
+use App\Models\SaturdayAttendance;
 use App\Models\User;
+use App\Support\SaturdayAttendanceWindow;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -35,9 +35,14 @@ class DashboardController extends Controller
             ->whereDoesntHave('reads', fn ($query) => $query->whereBelongsTo($user))
             ->count();
 
-        $pendingAbsences = $user->role->canReviewAbsences()
-            ? AbsenceRequest::query()->where('status', AbsenceStatus::Pending)->count()
-            : AbsenceRequest::query()->whereBelongsTo($user, 'student')->where('status', AbsenceStatus::Pending)->count();
+        $saturday = SaturdayAttendanceWindow::currentOrLatestSaturday();
+        $saturdayPresent = SaturdayAttendance::query()
+            ->whereDate('attended_on', $saturday->toDateString())
+            ->count();
+        $saturdayMine = SaturdayAttendance::query()
+            ->whereBelongsTo($user)
+            ->whereDate('attended_on', $saturday->toDateString())
+            ->exists();
 
         $pendingQuestions = $user->role->canCurateLecturerQuestions()
             ? LecturerQuestion::query()->where('status', LecturerQuestionStatus::Baru)->count()
@@ -46,7 +51,8 @@ class DashboardController extends Controller
         return view('dashboard', [
             'announcements' => $announcements,
             'unreadCount' => $unreadCount,
-            'pendingAbsences' => $pendingAbsences,
+            'saturdayPresent' => $saturdayPresent,
+            'saturdayMine' => $saturdayMine,
             'pendingQuestions' => $pendingQuestions,
             'memberCount' => User::query()->count(),
         ]);

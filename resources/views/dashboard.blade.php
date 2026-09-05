@@ -11,10 +11,14 @@
             <p class="text-xs tracking-wide text-ink/45 uppercase">Belum dibaca</p>
             <p class="mt-2 text-3xl font-semibold text-navy">{{ $unreadCount }}</p>
         </div>
-        <div class="rounded-2xl border border-line bg-card p-5">
-            <p class="text-xs tracking-wide text-ink/45 uppercase">Izin menunggu</p>
-            <p class="mt-2 text-3xl font-semibold text-navy">{{ $pendingAbsences }}</p>
-        </div>
+        <a href="{{ route('attendances.index') }}" class="rounded-2xl border border-line bg-card p-5 transition hover:border-navy/25">
+            <p class="text-xs tracking-wide text-ink/45 uppercase">Hadir Sabtu</p>
+            @can('export', App\Models\SaturdayAttendance::class)
+                <p class="mt-2 text-3xl font-semibold text-navy">{{ $saturdayPresent }}/{{ $memberCount }}</p>
+            @else
+                <p class="mt-2 text-3xl font-semibold text-navy">{{ $saturdayMine ? 'Hadir' : 'Belum' }}</p>
+            @endcan
+        </a>
         <a href="{{ route('lecturer-questions.index') }}" class="rounded-2xl border border-line bg-card p-5 transition hover:border-navy/25">
             <p class="text-xs tracking-wide text-ink/45 uppercase">Pertanyaan baru</p>
             <p class="mt-2 text-3xl font-semibold text-navy">{{ $pendingQuestions }}</p>

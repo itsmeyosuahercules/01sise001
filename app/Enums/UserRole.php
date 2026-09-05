@@ -57,6 +57,11 @@ enum UserRole: string
         return $this->isPengurus();
     }
 
+    public function canReviewAttendances(): bool
+    {
+        return $this->isPengurus();
+    }
+
     public function canManageTemplates(): bool
     {
         return $this->isPengurus();

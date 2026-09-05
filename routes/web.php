@@ -12,6 +12,7 @@ use App\Http\Controllers\MahasiswaImportController;
 use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RosterController;
+use App\Http\Controllers\SaturdayAttendanceController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function (): void {
@@ -66,6 +67,13 @@ Route::middleware('auth')->group(function (): void {
         ->parameters(['pertanyaan' => 'lecturer_question'])
         ->names('lecturer-questions')
         ->only(['index', 'create', 'store', 'update']);
+
+    Route::get('hadir', [SaturdayAttendanceController::class, 'index'])->name('attendances.index');
+    Route::post('hadir', [SaturdayAttendanceController::class, 'store'])
+        ->middleware('throttle:12,1')
+        ->name('attendances.store');
+    Route::get('hadir/laporan', [SaturdayAttendanceController::class, 'report'])->name('attendances.report');
+    Route::get('hadir/{saturday_attendance}/foto', [SaturdayAttendanceController::class, 'photo'])->name('attendances.photo');
 
     Route::get('izin/export', [AbsenceRequestController::class, 'export'])->name('absence-requests.export');
     Route::resource('izin', AbsenceRequestController::class)

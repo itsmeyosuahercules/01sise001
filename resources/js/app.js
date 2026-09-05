@@ -291,3 +291,61 @@ document.querySelectorAll('[data-filter-root]').forEach((root) => {
     root.addEventListener('input', () => applyFilters(root));
     root.addEventListener('change', () => applyFilters(root));
 });
+
+const attendanceForm = document.querySelector('[data-attendance-form]');
+
+if (attendanceForm) {
+    const latInput = attendanceForm.querySelector('[data-attendance-lat]');
+    const lngInput = attendanceForm.querySelector('[data-attendance-lng]');
+    const accuracyInput = attendanceForm.querySelector('[data-attendance-accuracy]');
+    const geoStatus = attendanceForm.querySelector('[data-attendance-geo]');
+    const submit = attendanceForm.querySelector('[data-attendance-submit]');
+    const photo = attendanceForm.querySelector('[data-attendance-photo]');
+    const preview = attendanceForm.querySelector('[data-attendance-preview]');
+
+    const applyPosition = (position) => {
+        latInput.value = position.coords.latitude.toFixed(7);
+        lngInput.value = position.coords.longitude.toFixed(7);
+        accuracyInput.value = Math.round(position.coords.accuracy || 0);
+        geoStatus.textContent = `Lokasi hidup siap (±${accuracyInput.value} m).`;
+        submit.disabled = false;
+    };
+
+    const failPosition = () => {
+        geoStatus.textContent = 'Lokasi wajib hidup. Izinkan akses lokasi, lalu muat ulang halaman.';
+        submit.disabled = true;
+    };
+
+    if (! navigator.geolocation) {
+        failPosition();
+    } else {
+        navigator.geolocation.getCurrentPosition(applyPosition, failPosition, {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            maximumAge: 0,
+        });
+        navigator.geolocation.watchPosition(applyPosition, () => {}, {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+        });
+    }
+
+    photo?.addEventListener('change', () => {
+        const file = photo.files?.[0];
+
+        if (! file || ! preview) {
+            return;
+        }
+
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove('hidden');
+    });
+
+    attendanceForm.addEventListener('submit', (event) => {
+        if (! latInput.value || ! lngInput.value) {
+            event.preventDefault();
+            failPosition();
+            toast('Izinkan lokasi hidup sebelum mengirim hadir.', 'error');
+        }
+    });
+}

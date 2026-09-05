@@ -15,7 +15,7 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dasbor</x-nav-link>
                     <x-nav-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*')">Pengumuman</x-nav-link>
                     <x-nav-link :href="route('roster.index')" :active="request()->routeIs('roster.*') || request()->routeIs('mahasiswa-imports.*')">Anggota</x-nav-link>
-                    <x-nav-link :href="route('absence-requests.index')" :active="request()->routeIs('absence-requests.*')">Izin</x-nav-link>
+                    <x-nav-link :href="route('attendances.index')" :active="request()->routeIs('attendances.*')">Hadir</x-nav-link>
                     <x-nav-link :href="route('lecturer-questions.index')" :active="request()->routeIs('lecturer-questions.*')">Pertanyaan</x-nav-link>
                     <x-nav-link :href="route('message-templates.index')" :active="request()->routeIs('message-templates.*')">Template</x-nav-link>
                     <x-nav-link :href="route('profiles.edit')" :active="request()->routeIs('profiles.*')">Profil</x-nav-link>
@@ -44,7 +44,7 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dasbor</x-nav-link>
                     <x-nav-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*')">Info</x-nav-link>
                     <x-nav-link :href="route('roster.index')" :active="request()->routeIs('roster.*')">Anggota</x-nav-link>
-                    <x-nav-link :href="route('absence-requests.index')" :active="request()->routeIs('absence-requests.*')">Izin</x-nav-link>
+                    <x-nav-link :href="route('attendances.index')" :active="request()->routeIs('attendances.*')">Hadir</x-nav-link>
                     <x-nav-link :href="route('lecturer-questions.index')" :active="request()->routeIs('lecturer-questions.*')">Tanya</x-nav-link>
                     <x-nav-link :href="route('message-templates.index')" :active="request()->routeIs('message-templates.*')">Template</x-nav-link>
                     <x-nav-link :href="route('profiles.edit')" :active="request()->routeIs('profiles.*')">Profil</x-nav-link>

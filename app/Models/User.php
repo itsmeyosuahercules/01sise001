@@ -58,6 +58,11 @@ class User extends Authenticatable
         return $this->hasMany(AbsenceRequest::class);
     }
 
+    public function saturdayAttendances(): HasMany
+    {
+        return $this->hasMany(SaturdayAttendance::class);
+    }
+
     public function reviewedAbsenceRequests(): HasMany
     {
         return $this->hasMany(AbsenceRequest::class, 'reviewer_id');
