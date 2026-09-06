@@ -7,8 +7,10 @@ use App\Http\Requests\StoreSaturdayAttendanceRequest;
 use App\Models\SaturdayAttendance;
 use App\Models\User;
 use App\Support\SaturdayAttendanceWindow;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use InvalidArgumentException;
@@ -34,6 +36,7 @@ class SaturdayAttendanceController extends Controller
 
         $members = collect();
         $presentCount = 0;
+        $whatsappSummary = null;
 
         if ($user->role->canReviewAttendances()) {
             $attendances = SaturdayAttendance::query()
@@ -54,16 +57,61 @@ class SaturdayAttendanceController extends Controller
                 });
 
             $presentCount = $attendances->count();
+            $whatsappSummary = $this->whatsappSummary($date, $members, $presentCount);
         }
 
         return view('attendances.index', [
             'date' => $date,
+            'checkInDate' => SaturdayAttendanceWindow::currentOrLatestSaturday(),
             'isOpen' => SaturdayAttendanceWindow::isOpen(),
+            'openWindowLabel' => SaturdayAttendanceWindow::openWindowLabel(),
+            'canManage' => $user->role->canReviewAttendances(),
             'mine' => $mine,
             'members' => $members,
             'presentCount' => $presentCount,
+            'whatsappSummary' => $whatsappSummary,
             'saturdays' => SaturdayAttendanceWindow::recentSaturdays(),
         ]);
+    }
+
+    public function mark(Request $request): RedirectResponse
+    {
+        $this->authorize('manage', SaturdayAttendance::class);
+
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'tanggal' => ['required', 'date'],
+            'present' => ['required', 'boolean'],
+        ]);
+
+        try {
+            $date = SaturdayAttendanceWindow::resolveDate($validated['tanggal']);
+        } catch (InvalidArgumentException $exception) {
+            return back()->withErrors(['tanggal' => $exception->getMessage()]);
+        }
+
+        $member = User::query()->findOrFail($validated['user_id']);
+        $existing = SaturdayAttendance::query()
+            ->whereBelongsTo($member)
+            ->whereDate('attended_on', $date->toDateString())
+            ->first();
+
+        if ($request->boolean('present')) {
+            if (! $existing instanceof SaturdayAttendance) {
+                SaturdayAttendance::query()->create([
+                    'user_id' => $member->id,
+                    'marked_by' => $request->user()->id,
+                    'attended_on' => $date->toDateString(),
+                    'note' => 'Ditandai hadir oleh '.$request->user()->name,
+                ]);
+            }
+        } elseif ($existing instanceof SaturdayAttendance) {
+            $existing->delete();
+        }
+
+        return redirect()
+            ->route('attendances.index', ['tanggal' => $date->toDateString()])
+            ->with('status', 'Kehadiran '.$member->name.' diperbarui.');
     }
 
     public function store(StoreSaturdayAttendanceRequest $request, StoreSaturdayAttendance $store): RedirectResponse
@@ -125,5 +173,45 @@ class SaturdayAttendanceController extends Controller
             'generatedAt' => now(),
             'officer' => $request->user(),
         ]);
+    }
+
+    /**
+     * @param  Collection<int, array{user: User, attendance: ?SaturdayAttendance}>  $members
+     */
+    private function whatsappSummary(CarbonImmutable $date, Collection $members, int $presentCount): string
+    {
+        $present = $members->filter(fn (array $row): bool => $row['attendance'] !== null)->values();
+        $absent = $members->filter(fn (array $row): bool => $row['attendance'] === null)->values();
+
+        $lines = [
+            'Rekap Hadir Sabtu '.$date->translatedFormat('d M Y').' — '.config('kelas.name'),
+            'Hadir '.$presentCount.'/'.$members->count(),
+            '',
+            'Hadir:',
+        ];
+
+        foreach ($present as $index => $row) {
+            $lines[] = ($index + 1).'. '.$row['user']->name;
+        }
+
+        if ($present->isEmpty()) {
+            $lines[] = '-';
+        }
+
+        $lines[] = '';
+        $lines[] = 'Tidak hadir:';
+
+        foreach ($absent as $index => $row) {
+            $lines[] = ($index + 1).'. '.$row['user']->name;
+        }
+
+        if ($absent->isEmpty()) {
+            $lines[] = '-';
+        }
+
+        $lines[] = '';
+        $lines[] = 'Rekap kelas untuk dosen, bukan presensi resmi UNPAM.';
+
+        return implode("\n", $lines);
     }
 }

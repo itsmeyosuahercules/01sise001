@@ -14,11 +14,11 @@
     </div>
 
     <p class="mt-4 text-sm text-ink/65">
-        Sabtu {{ $date->translatedFormat('d F Y') }}
+        Sabtu {{ $checkInDate->translatedFormat('d F Y') }} · jam buka {{ $openWindowLabel }}
         @if ($isOpen)
-            · <span class="text-navy">Pengiriman dibuka hari ini</span>
+            · <span class="text-navy">Pengiriman dibuka sekarang</span>
         @else
-            · Pengiriman tertutup sampai Sabtu berikutnya
+            · Pengiriman tertutup, tunggu Sabtu jam buka
         @endif
     </p>
 
@@ -85,9 +85,10 @@
                 </form>
             </div>
             <p class="mt-1 text-sm text-ink/55">{{ $presentCount }} hadir · {{ $members->count() - $presentCount }} tidak hadir · {{ $members->count() }} anggota</p>
+            <p class="mt-1 text-xs text-ink/45">Ubah Hadir/Tidak hadir di kolom Aksi untuk mencatat Sabtu yang lewat. Yang tanpa foto ditandai KM.</p>
 
             <div class="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
-                <table class="w-full min-w-[720px] text-left text-sm">
+                <table class="w-full min-w-[820px] text-left text-sm">
                     <thead class="border-b border-line text-xs tracking-wide text-ink/45 uppercase">
                         <tr>
                             <th class="px-4 py-3 font-medium">Foto</th>
@@ -96,6 +97,7 @@
                             <th class="px-4 py-3 font-medium">Status</th>
                             <th class="px-4 py-3 font-medium">Waktu</th>
                             <th class="px-4 py-3 font-medium">Lokasi</th>
+                            <th class="px-4 py-3 font-medium">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -106,7 +108,7 @@
                             @endphp
                             <tr class="border-b border-line/70 last:border-0">
                                 <td class="px-4 py-3">
-                                    @if ($attendance)
+                                    @if ($attendance && $attendance->hasPhoto())
                                         <a href="{{ route('attendances.photo', $attendance) }}">
                                             <img src="{{ route('attendances.photo', $attendance) }}" alt="" class="size-12 rounded-lg object-cover">
                                         </a>
@@ -119,23 +121,47 @@
                                 <td class="px-4 py-3">
                                     @if ($attendance)
                                         <span class="text-navy">Hadir</span>
+                                        @if ($attendance->isManual())
+                                            <span class="ml-1 rounded-full bg-navy/10 px-2 py-0.5 text-[10px] text-navy">dicatat KM</span>
+                                        @endif
                                     @else
                                         <span class="text-accent-hot">Tidak hadir</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-ink/65">{{ $attendance?->captured_at?->timezone(config('app.timezone'))->format('H:i') ?? '—' }}</td>
                                 <td class="px-4 py-3">
-                                    @if ($attendance)
+                                    @if ($attendance && $attendance->hasLocation())
                                         <a href="{{ $attendance->mapsUrl() }}" class="text-navy hover:underline" target="_blank" rel="noreferrer">{{ $attendance->coordinateLabel() }}</a>
                                     @else
                                         —
                                     @endif
+                                </td>
+                                <td class="px-4 py-3">
+                                    <form method="POST" action="{{ route('attendances.mark') }}">
+                                        @csrf
+                                        <input type="hidden" name="tanggal" value="{{ $date->toDateString() }}">
+                                        <input type="hidden" name="user_id" value="{{ $member->id }}">
+                                        <select name="present" onchange="this.form.requestSubmit()" class="rounded-lg border border-line bg-card px-2 py-1.5 text-xs">
+                                            <option value="1" @selected($attendance)>Hadir</option>
+                                            <option value="0" @selected(! $attendance)>Tidak hadir</option>
+                                        </select>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
+
+            @if ($whatsappSummary)
+                <div class="mt-4 rounded-2xl border border-line bg-card p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <p class="text-sm font-medium">Salin rekap ke WhatsApp</p>
+                        <x-btn type="button" variant="secondary" data-copy="#wa-summary">Salin</x-btn>
+                    </div>
+                    <textarea id="wa-summary" readonly rows="6" class="mt-2 w-full rounded-xl border border-line bg-paper px-3 py-2 font-mono text-xs">{{ $whatsappSummary }}</textarea>
+                </div>
+            @endif
         </section>
     @endcan
 @endsection

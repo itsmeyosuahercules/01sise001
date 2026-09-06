@@ -72,6 +72,9 @@ Route::middleware('auth')->group(function (): void {
     Route::post('hadir', [SaturdayAttendanceController::class, 'store'])
         ->middleware('throttle:12,1')
         ->name('attendances.store');
+    Route::post('hadir/tandai', [SaturdayAttendanceController::class, 'mark'])
+        ->middleware('throttle:60,1')
+        ->name('attendances.mark');
     Route::get('hadir/laporan', [SaturdayAttendanceController::class, 'report'])->name('attendances.report');
     Route::get('hadir/{saturday_attendance}/foto', [SaturdayAttendanceController::class, 'photo'])->name('attendances.photo');
 

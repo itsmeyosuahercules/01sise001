@@ -37,7 +37,7 @@ class StoreSaturdayAttendanceRequest extends FormRequest
         return [
             function (Validator $validator): void {
                 if (! SaturdayAttendanceWindow::isOpen()) {
-                    $validator->errors()->add('photo', 'Hadir hanya bisa dikirim hari Sabtu.');
+                    $validator->errors()->add('photo', 'Hadir hanya bisa dikirim hari Sabtu pada jam buka ('.SaturdayAttendanceWindow::openWindowLabel().').');
                 }
             },
         ];

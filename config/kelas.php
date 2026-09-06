@@ -18,5 +18,8 @@ return [
     'attendance' => [
         'max_kilobytes' => 4096,
         'mimes' => ['jpg', 'jpeg', 'png', 'webp'],
+        'open_from' => env('KELAS_ATTENDANCE_OPEN_FROM', '06:00'),
+        'open_until' => env('KELAS_ATTENDANCE_OPEN_UNTIL', '18:00'),
+        'history_weeks' => (int) env('KELAS_ATTENDANCE_HISTORY_WEEKS', 20),
     ],
 ];

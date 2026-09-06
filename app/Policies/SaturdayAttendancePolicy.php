@@ -26,4 +26,9 @@ class SaturdayAttendancePolicy
     {
         return $user->role->canReviewAttendances();
     }
+
+    public function manage(User $user): bool
+    {
+        return $user->role->canReviewAttendances();
+    }
 }

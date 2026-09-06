@@ -186,6 +186,95 @@ class SaturdayAttendanceTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_members_cannot_check_in_before_the_open_hours(): void
+    {
+        Storage::fake('local');
+        Carbon::setTestNow(Carbon::parse('2026-09-05 03:00:00', 'Asia/Jakarta'));
+
+        $member = User::factory()->anggota()->create();
+
+        $this->assertFalse(SaturdayAttendanceWindow::isOpen());
+
+        $this->actingAs($member)
+            ->from(route('attendances.index'))
+            ->post(route('attendances.store'), [
+                'photo' => UploadedFile::fake()->image('wajah.jpg', 120, 120),
+                'latitude' => -6.26,
+                'longitude' => 106.66,
+            ])
+            ->assertRedirect(route('attendances.index'))
+            ->assertSessionHasErrors('photo');
+
+        $this->assertSame(0, SaturdayAttendance::query()->count());
+    }
+
+    public function test_officers_can_mark_a_member_present_for_a_past_saturday(): void
+    {
+        $km = User::factory()->km()->create();
+        $member = User::factory()->anggota()->create();
+
+        $this->actingAs($km)
+            ->post(route('attendances.mark'), [
+                'user_id' => $member->id,
+                'tanggal' => '2026-08-29',
+                'present' => '1',
+            ])
+            ->assertRedirect(route('attendances.index', ['tanggal' => '2026-08-29']));
+
+        $attendance = SaturdayAttendance::query()->firstWhere('user_id', $member->id);
+
+        $this->assertNotNull($attendance);
+        $this->assertSame('2026-08-29', $attendance->attended_on->toDateString());
+        $this->assertSame($km->id, $attendance->marked_by);
+        $this->assertNull($attendance->photo_path);
+        $this->assertTrue($attendance->isManual());
+    }
+
+    public function test_officers_can_mark_a_member_absent_to_remove_a_check_in(): void
+    {
+        Storage::fake('local');
+
+        $km = User::factory()->km()->create();
+        $member = User::factory()->anggota()->create();
+        SaturdayAttendance::factory()->create(['user_id' => $member->id]);
+
+        $this->actingAs($km)
+            ->post(route('attendances.mark'), [
+                'user_id' => $member->id,
+                'tanggal' => '2026-09-05',
+                'present' => '0',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(0, SaturdayAttendance::query()->count());
+    }
+
+    public function test_members_cannot_mark_attendance(): void
+    {
+        $member = User::factory()->anggota()->create();
+        $other = User::factory()->anggota()->create();
+
+        $this->actingAs($member)
+            ->post(route('attendances.mark'), [
+                'user_id' => $other->id,
+                'tanggal' => '2026-09-05',
+                'present' => '1',
+            ])
+            ->assertForbidden();
+
+        $this->assertSame(0, SaturdayAttendance::query()->count());
+    }
+
+    public function test_the_report_offers_an_e_sign_block(): void
+    {
+        $km = User::factory()->km()->create();
+
+        $this->actingAs($km)
+            ->get(route('attendances.report'))
+            ->assertOk()
+            ->assertSee('tanda tangan elektronik');
+    }
+
     public function test_the_class_vice_can_open_the_report(): void
     {
         $wakil = User::factory()->wakil()->create();

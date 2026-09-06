@@ -308,6 +308,13 @@ if (attendanceForm) {
     const snap = attendanceForm.querySelector('[data-attendance-snap]');
     const resnap = attendanceForm.querySelector('[data-attendance-resnap]');
     let hasPhoto = false;
+    let activeStream = null;
+
+    const stopCamera = () => {
+        activeStream?.getTracks().forEach((track) => track.stop());
+        activeStream = null;
+        video.srcObject = null;
+    };
 
     const refreshSubmit = () => {
         submit.disabled = ! (latInput.value && lngInput.value && hasPhoto);
@@ -344,11 +351,16 @@ if (attendanceForm) {
             return;
         }
 
+        if (activeStream) {
+            return;
+        }
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 } },
                 audio: false,
             });
+            activeStream = stream;
             video.srcObject = stream;
             camStatus.textContent = 'Kamera siap. Arahkan muka, lalu tekan Jepret.';
         } catch {
@@ -380,7 +392,15 @@ if (attendanceForm) {
 
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        canvas.getContext('2d')?.drawImage(video, 0, 0);
+        const context = canvas.getContext('2d');
+
+        if (context) {
+            context.save();
+            context.translate(canvas.width, 0);
+            context.scale(-1, 1);
+            context.drawImage(video, 0, 0);
+            context.restore();
+        }
 
         canvas.toBlob((blob) => {
             if (! blob) {
@@ -399,14 +419,18 @@ if (attendanceForm) {
             resnap.classList.remove('hidden');
             hasPhoto = true;
             camStatus.textContent = 'Foto tersimpan. Kirim, atau jepret ulang.';
+            stopCamera();
             refreshSubmit();
         }, 'image/jpeg', 0.9);
     });
 
     resnap?.addEventListener('click', () => {
         showLive();
-        camStatus.textContent = 'Kamera siap. Arahkan muka, lalu tekan Jepret.';
+        startCamera();
+        camStatus.textContent = 'Menghidupkan kamera…';
     });
+
+    window.addEventListener('pagehide', stopCamera);
 
     attendanceForm.addEventListener('submit', (event) => {
         if (! latInput.value || ! lngInput.value) {

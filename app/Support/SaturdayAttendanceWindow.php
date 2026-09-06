@@ -14,7 +14,25 @@ class SaturdayAttendanceWindow
 
     public static function isOpen(?CarbonImmutable $now = null): bool
     {
-        return ($now ?? static::now())->isSaturday();
+        $now ??= static::now();
+
+        if (! $now->isSaturday()) {
+            return false;
+        }
+
+        $config = config('kelas.attendance');
+        $from = $now->setTimeFromTimeString((string) $config['open_from']);
+        $until = $now->setTimeFromTimeString((string) $config['open_until']);
+
+        return $now->between($from, $until);
+    }
+
+    public static function openWindowLabel(): string
+    {
+        $config = config('kelas.attendance');
+
+        return str_replace(':', '.', (string) $config['open_from'])
+            .'–'.str_replace(':', '.', (string) $config['open_until']).' WIB';
     }
 
     public static function currentOrLatestSaturday(?CarbonImmutable $now = null): CarbonImmutable
@@ -25,14 +43,15 @@ class SaturdayAttendanceWindow
             return $now->startOfDay();
         }
 
-        return $now->subDay()->previousOrSame(CarbonImmutable::SATURDAY)->startOfDay();
+        return $now->previous(CarbonImmutable::SATURDAY)->startOfDay();
     }
 
     /**
      * @return list<CarbonImmutable>
      */
-    public static function recentSaturdays(int $weeks = 12, ?CarbonImmutable $now = null): array
+    public static function recentSaturdays(?int $weeks = null, ?CarbonImmutable $now = null): array
     {
+        $weeks ??= max(1, (int) config('kelas.attendance.history_weeks', 20));
         $cursor = static::currentOrLatestSaturday($now);
         $dates = [];
 

@@ -39,6 +39,15 @@
             td.center { text-align: center; }
             .hadir { color: #0b2a6b; font-weight: 600; }
             .absen { color: #b42318; font-weight: 600; }
+            .tag { display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 999px; background: #eef2fb; color: #0b2a6b; font-size: 9px; font-weight: 600; }
+            .sign { display: flex; justify-content: flex-end; margin-top: 28px; }
+            .sign-box { width: 240px; text-align: center; font-size: 12px; color: #142033; }
+            .sign-pad { width: 240px; height: 110px; border: 1px dashed #b7bdc8; border-radius: 10px; background: #fff; touch-action: none; }
+            .sign-img { width: 240px; height: 110px; object-fit: contain; display: none; }
+            .sign-tools { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+            .sign-tools button { padding: 6px 10px; font-size: 12px; }
+            .sign-name { margin-top: 8px; font-weight: 600; }
+            .sign-line { margin-top: 4px; color: #5b6573; }
             .face { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; }
             .mono { font-family: ui-monospace, Consolas, monospace; font-size: 10px; }
             button {
@@ -55,6 +64,7 @@
                 body { background: #fff; }
                 .toolbar { display: none; }
                 .sheet { margin: 0; width: auto; box-shadow: none; padding: 0; }
+                .sign-tools, .sign-pad.is-empty { display: none; }
             }
         </style>
     </head>
@@ -108,10 +118,15 @@
                             </td>
                             <td class="mono">{{ $member->nim }}</td>
                             <td>{{ $member->name }}</td>
-                            <td class="{{ $attendance ? 'hadir' : 'absen' }}">{{ $attendance ? 'Hadir' : 'Tidak hadir' }}</td>
+                            <td class="{{ $attendance ? 'hadir' : 'absen' }}">
+                                {{ $attendance ? 'Hadir' : 'Tidak hadir' }}
+                                @if ($attendance?->isManual())
+                                    <span class="tag">dicatat KM</span>
+                                @endif
+                            </td>
                             <td>{{ $attendance?->captured_at?->timezone(config('app.timezone'))->format('H:i') ?? '—' }}</td>
                             <td class="mono">
-                                @if ($attendance)
+                                @if ($attendance?->hasLocation())
                                     {{ $attendance->coordinateLabel() }}
                                 @else
                                     —
@@ -121,6 +136,72 @@
                     @endforeach
                 </tbody>
             </table>
+
+            <div class="sign">
+                <div class="sign-box">
+                    <p class="sign-line">{{ config('kelas.name') }}, {{ $generatedAt->timezone(config('app.timezone'))->translatedFormat('d F Y') }}</p>
+                    <canvas class="sign-pad is-empty" data-sign-pad width="240" height="110"></canvas>
+                    <img class="sign-img" data-sign-img alt="Tanda tangan">
+                    <div class="sign-tools">
+                        <button type="button" data-sign-clear>Hapus tanda tangan</button>
+                    </div>
+                    <p class="sign-name">{{ $officer->name }}</p>
+                    <p class="sign-line">{{ $officer->role->label() }} · tanda tangan elektronik</p>
+                </div>
+            </div>
         </article>
+
+        <script>
+            (function () {
+                var pad = document.querySelector('[data-sign-pad]');
+                var img = document.querySelector('[data-sign-img]');
+                var clearBtn = document.querySelector('[data-sign-clear]');
+                if (! pad) { return; }
+
+                var key = 'esign:{{ $officer->nim }}';
+                var ctx = pad.getContext('2d');
+                ctx.lineWidth = 2.2;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#142033';
+                var drawing = false;
+                var dirty = false;
+
+                function pos(event) {
+                    var rect = pad.getBoundingClientRect();
+                    var point = event.touches ? event.touches[0] : event;
+                    return {
+                        x: (point.clientX - rect.left) * (pad.width / rect.width),
+                        y: (point.clientY - rect.top) * (pad.height / rect.height),
+                    };
+                }
+                function start(event) { event.preventDefault(); drawing = true; var p = pos(event); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+                function move(event) { if (! drawing) { return; } event.preventDefault(); var p = pos(event); ctx.lineTo(p.x, p.y); ctx.stroke(); dirty = true; pad.classList.remove('is-empty'); }
+                function end() { if (drawing && dirty) { try { localStorage.setItem(key, pad.toDataURL('image/png')); } catch (e) {} } drawing = false; }
+
+                pad.addEventListener('mousedown', start);
+                pad.addEventListener('mousemove', move);
+                window.addEventListener('mouseup', end);
+                pad.addEventListener('touchstart', start, { passive: false });
+                pad.addEventListener('touchmove', move, { passive: false });
+                pad.addEventListener('touchend', end);
+
+                var saved = null;
+                try { saved = localStorage.getItem(key); } catch (e) {}
+                if (saved) {
+                    img.src = saved;
+                    img.style.display = 'block';
+                    pad.style.display = 'none';
+                }
+
+                clearBtn.addEventListener('click', function () {
+                    ctx.clearRect(0, 0, pad.width, pad.height);
+                    pad.classList.add('is-empty');
+                    pad.style.display = 'block';
+                    img.style.display = 'none';
+                    dirty = false;
+                    try { localStorage.removeItem(key); } catch (e) {}
+                });
+            })();
+        </script>
     </body>
 </html>

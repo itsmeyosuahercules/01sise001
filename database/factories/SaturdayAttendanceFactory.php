@@ -27,4 +27,20 @@ class SaturdayAttendanceFactory extends Factory
             'captured_at' => now(),
         ];
     }
+
+    /**
+     * A record marked manually by an officer, without photo or location.
+     */
+    public function manual(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'marked_by' => User::factory(),
+            'photo_path' => null,
+            'latitude' => null,
+            'longitude' => null,
+            'accuracy' => null,
+            'captured_at' => null,
+            'note' => 'Ditandai hadir oleh KM',
+        ]);
+    }
 }

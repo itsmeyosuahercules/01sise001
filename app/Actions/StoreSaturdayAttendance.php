@@ -17,7 +17,7 @@ class StoreSaturdayAttendance
     public function handle(User $user, UploadedFile $photo, array $location): SaturdayAttendance
     {
         if (! SaturdayAttendanceWindow::isOpen()) {
-            throw new RuntimeException('Hadir hanya bisa dikirim hari Sabtu.');
+            throw new RuntimeException('Hadir hanya bisa dikirim hari Sabtu pada jam buka ('.SaturdayAttendanceWindow::openWindowLabel().').');
         }
 
         $attendedOn = SaturdayAttendanceWindow::currentOrLatestSaturday()->toDateString();

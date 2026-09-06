@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['user_id', 'attended_on', 'photo_path', 'latitude', 'longitude', 'accuracy', 'captured_at'])]
+#[Fillable(['user_id', 'marked_by', 'attended_on', 'photo_path', 'latitude', 'longitude', 'accuracy', 'captured_at', 'note'])]
 class SaturdayAttendance extends Model
 {
     /** @use HasFactory<SaturdayAttendanceFactory> */
@@ -43,13 +43,41 @@ class SaturdayAttendance extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function mapsUrl(): string
+    public function markedBy(): BelongsTo
     {
+        return $this->belongsTo(User::class, 'marked_by');
+    }
+
+    public function isManual(): bool
+    {
+        return $this->marked_by !== null;
+    }
+
+    public function hasPhoto(): bool
+    {
+        return filled($this->photo_path);
+    }
+
+    public function hasLocation(): bool
+    {
+        return $this->latitude !== null && $this->longitude !== null;
+    }
+
+    public function mapsUrl(): ?string
+    {
+        if (! $this->hasLocation()) {
+            return null;
+        }
+
         return 'https://maps.google.com/?q='.$this->latitude.','.$this->longitude;
     }
 
-    public function coordinateLabel(): string
+    public function coordinateLabel(): ?string
     {
+        if (! $this->hasLocation()) {
+            return null;
+        }
+
         return number_format($this->latitude, 6).', '.number_format($this->longitude, 6);
     }
 
