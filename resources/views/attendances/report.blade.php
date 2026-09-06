@@ -48,7 +48,6 @@
             .sign-tools button { padding: 6px 10px; font-size: 12px; }
             .sign-name { margin-top: 8px; font-weight: 600; }
             .sign-line { margin-top: 4px; color: #5b6573; }
-            .face { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; }
             .mono { font-family: ui-monospace, Consolas, monospace; font-size: 10px; }
             button {
                 background: #0b2a6b;
@@ -93,7 +92,6 @@
                 <thead>
                     <tr>
                         <th style="width: 28px">No</th>
-                        <th style="width: 56px">Foto</th>
                         <th style="width: 110px">NIM</th>
                         <th>Nama</th>
                         <th style="width: 88px">Status</th>
@@ -109,13 +107,6 @@
                         @endphp
                         <tr>
                             <td class="center">{{ $index + 1 }}</td>
-                            <td class="center">
-                                @if ($attendance?->photoDataUri())
-                                    <img class="face" src="{{ $attendance->photoDataUri() }}" alt="">
-                                @else
-                                    —
-                                @endif
-                            </td>
                             <td class="mono">{{ $member->nim }}</td>
                             <td>{{ $member->name }}</td>
                             <td class="{{ $attendance ? 'hadir' : 'absen' }}">
