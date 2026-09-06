@@ -8,6 +8,7 @@ use App\Models\SaturdayAttendance;
 use App\Models\User;
 use App\Support\SaturdayAttendanceWindow;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -74,7 +75,7 @@ class SaturdayAttendanceController extends Controller
         ]);
     }
 
-    public function mark(Request $request): RedirectResponse
+    public function mark(Request $request): JsonResponse|RedirectResponse
     {
         $this->authorize('manage', SaturdayAttendance::class);
 
@@ -95,10 +96,11 @@ class SaturdayAttendanceController extends Controller
             ->whereBelongsTo($member)
             ->whereDate('attended_on', $date->toDateString())
             ->first();
+        $present = $request->boolean('present');
 
-        if ($request->boolean('present')) {
+        if ($present) {
             if (! $existing instanceof SaturdayAttendance) {
-                SaturdayAttendance::query()->create([
+                $existing = SaturdayAttendance::query()->create([
                     'user_id' => $member->id,
                     'marked_by' => $request->user()->id,
                     'attended_on' => $date->toDateString(),
@@ -107,11 +109,19 @@ class SaturdayAttendanceController extends Controller
             }
         } elseif ($existing instanceof SaturdayAttendance) {
             $existing->delete();
+            $existing = null;
         }
 
-        return redirect()
+        $message = 'Kehadiran '.$member->name.' diperbarui.';
+
+        return $this->respond($request, [
+            'present' => $present,
+            'is_manual' => $existing?->isManual() ?? false,
+            'time' => $existing?->captured_at?->timezone(config('app.timezone'))->format('H:i'),
+            'message' => $message,
+        ], redirect()
             ->route('attendances.index', ['tanggal' => $date->toDateString()])
-            ->with('status', 'Kehadiran '.$member->name.' diperbarui.');
+            ->with('status', $message));
     }
 
     public function store(StoreSaturdayAttendanceRequest $request, StoreSaturdayAttendance $store): RedirectResponse

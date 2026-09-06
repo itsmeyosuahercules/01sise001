@@ -148,6 +148,56 @@ const applyRole = (form, payload) => {
     }
 };
 
+const applyAttendanceMark = (form, payload) => {
+    const row = form.closest('[data-attendance-row]');
+    const select = form.querySelector('select[name="present"]');
+
+    if (select) {
+        select.dataset.previous = payload.present ? '1' : '0';
+    }
+
+    if (! row) {
+        return;
+    }
+
+    const statusCell = row.querySelector('[data-attendance-status-cell]');
+    const label = row.querySelector('[data-attendance-status-label]');
+    const timeCell = row.querySelector('[data-attendance-time-cell]');
+
+    if (label) {
+        label.textContent = payload.present ? 'Hadir' : 'Tidak hadir';
+        label.classList.toggle('text-navy', payload.present);
+        label.classList.toggle('text-accent-hot', ! payload.present);
+    }
+
+    statusCell?.querySelector('[data-attendance-manual-tag]')?.remove();
+
+    if (payload.present && payload.is_manual && statusCell) {
+        const tag = document.createElement('span');
+        tag.dataset.attendanceManualTag = '';
+        tag.className = 'ml-1 rounded-full bg-navy/10 px-2 py-0.5 text-[10px] text-navy';
+        tag.textContent = 'dicatat KM';
+        statusCell.appendChild(tag);
+    }
+
+    if (timeCell) {
+        timeCell.textContent = payload.time || '—';
+    }
+
+    if (! payload.present) {
+        const photoCell = row.querySelector('[data-attendance-photo-cell]');
+        const locationCell = row.querySelector('[data-attendance-location-cell]');
+
+        if (photoCell) {
+            photoCell.innerHTML = '<span class="text-ink/40">—</span>';
+        }
+
+        if (locationCell) {
+            locationCell.textContent = '—';
+        }
+    }
+};
+
 const applyPackageMeta = (payload) => {
     const packageText = document.querySelector('[data-package-text]');
 
@@ -195,6 +245,7 @@ const remotes = {
     'comment-delete': applyCommentDelete,
     review: applyReview,
     role: applyRole,
+    'attendance-mark': applyAttendanceMark,
     'question-status': applyQuestionStatus,
     'question-package': applyQuestionPackage,
 };
@@ -218,6 +269,14 @@ document.addEventListener('submit', async (event) => {
     } catch (error) {
         if (action === 'role') {
             const select = form.querySelector('select[name="role"]');
+
+            if (select?.dataset.previous) {
+                select.value = select.dataset.previous;
+            }
+        }
+
+        if (action === 'attendance-mark') {
+            const select = form.querySelector('select[name="present"]');
 
             if (select?.dataset.previous) {
                 select.value = select.dataset.previous;

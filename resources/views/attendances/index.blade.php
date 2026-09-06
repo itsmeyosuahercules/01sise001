@@ -106,8 +106,8 @@
                                 $member = $row['user'];
                                 $attendance = $row['attendance'];
                             @endphp
-                            <tr class="border-b border-line/70 last:border-0">
-                                <td class="px-4 py-3">
+                            <tr class="border-b border-line/70 last:border-0" data-attendance-row>
+                                <td class="px-4 py-3" data-attendance-photo-cell>
                                     @if ($attendance && $attendance->hasPhoto())
                                         <a href="{{ route('attendances.photo', $attendance) }}">
                                             <img src="{{ route('attendances.photo', $attendance) }}" alt="" class="size-12 rounded-lg object-cover">
@@ -118,18 +118,18 @@
                                 </td>
                                 <td class="px-4 py-3 font-mono text-xs">{{ $member->nim }}</td>
                                 <td class="px-4 py-3">{{ $member->name }}</td>
-                                <td class="px-4 py-3">
+                                <td class="px-4 py-3" data-attendance-status-cell>
                                     @if ($attendance)
-                                        <span class="text-navy">Hadir</span>
+                                        <span class="text-navy" data-attendance-status-label>Hadir</span>
                                         @if ($attendance->isManual())
-                                            <span class="ml-1 rounded-full bg-navy/10 px-2 py-0.5 text-[10px] text-navy">dicatat KM</span>
+                                            <span class="ml-1 rounded-full bg-navy/10 px-2 py-0.5 text-[10px] text-navy" data-attendance-manual-tag>dicatat KM</span>
                                         @endif
                                     @else
-                                        <span class="text-accent-hot">Tidak hadir</span>
+                                        <span class="text-accent-hot" data-attendance-status-label>Tidak hadir</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-ink/65">{{ $attendance?->captured_at?->timezone(config('app.timezone'))->format('H:i') ?? '—' }}</td>
-                                <td class="px-4 py-3">
+                                <td class="px-4 py-3 text-ink/65" data-attendance-time-cell>{{ $attendance?->captured_at?->timezone(config('app.timezone'))->format('H:i') ?? '—' }}</td>
+                                <td class="px-4 py-3" data-attendance-location-cell>
                                     @if ($attendance && $attendance->hasLocation())
                                         <a href="{{ $attendance->mapsUrl() }}" class="text-navy hover:underline" target="_blank" rel="noreferrer">{{ $attendance->coordinateLabel() }}</a>
                                     @else
@@ -137,11 +137,11 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3">
-                                    <form method="POST" action="{{ route('attendances.mark') }}">
+                                    <form method="POST" action="{{ route('attendances.mark') }}" data-remote="attendance-mark">
                                         @csrf
                                         <input type="hidden" name="tanggal" value="{{ $date->toDateString() }}">
                                         <input type="hidden" name="user_id" value="{{ $member->id }}">
-                                        <select name="present" onchange="this.form.requestSubmit()" class="rounded-lg border border-line bg-card px-2 py-1.5 text-xs">
+                                        <select name="present" data-previous="{{ $attendance ? '1' : '0' }}" onchange="this.form.requestSubmit()" class="rounded-lg border border-line bg-card px-2 py-1.5 text-xs">
                                             <option value="1" @selected($attendance)>Hadir</option>
                                             <option value="0" @selected(! $attendance)>Tidak hadir</option>
                                         </select>
