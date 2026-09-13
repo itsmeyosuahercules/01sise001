@@ -81,6 +81,8 @@ class ProfileController extends Controller
             404,
         );
 
-        return Storage::disk('local')->response($user->avatar_path, $user->name);
+        return Storage::disk('local')->response($user->avatar_path, $user->name, [
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
     }
 }

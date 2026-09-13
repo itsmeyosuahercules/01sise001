@@ -46,8 +46,10 @@
                     @foreach ($images as $attachment)
                         <a href="{{ route('announcements.attachments.show', [$announcement, $attachment]) }}" class="overflow-hidden rounded-2xl border border-line bg-card">
                             <img
-                                src="{{ route('announcements.attachments.show', [$announcement, $attachment]) }}"
+                                src="{{ route('announcements.attachments.show', [$announcement, $attachment]) }}?v={{ $attachment->updated_at?->timestamp ?? $attachment->id }}"
                                 alt="{{ $attachment->original_name }}"
+                                loading="lazy"
+                                decoding="async"
                                 class="max-h-80 w-full object-contain bg-paper"
                             >
                             <p class="truncate px-3 py-2 text-xs text-ink/55">{{ $attachment->original_name }}</p>
@@ -132,11 +134,10 @@
             <h2 class="text-sm font-semibold">Sudah baca ({{ $announcement->reads->count() }})</h2>
             <ul class="mt-2 space-y-2 text-sm text-ink/65">
                 @forelse ($announcement->reads as $read)
-                    <li class="flex items-center gap-2">
+                    <li>
                         @if ($read->user)
-                            <a href="{{ route('profiles.show', $read->user) }}" class="flex items-center gap-2 hover:text-navy">
-                                <x-avatar :user="$read->user" size="sm" />
-                                <span>{{ $read->user->name }} · {{ $read->user->nim }}</span>
+                            <a href="{{ route('profiles.show', $read->user) }}" class="hover:text-navy">
+                                {{ $read->user->name }} · {{ $read->user->nim }}
                             </a>
                         @else
                             <span>Anggota</span>

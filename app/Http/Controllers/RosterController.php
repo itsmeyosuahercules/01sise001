@@ -19,7 +19,7 @@ class RosterController extends Controller
         $members = User::query()
             ->orderBy('name')
             ->orderBy('id')
-            ->get();
+            ->get(['id', 'nim', 'name', 'role', 'bio', 'avatar_path', 'updated_at']);
 
         return view('roster.index', [
             'members' => $members,

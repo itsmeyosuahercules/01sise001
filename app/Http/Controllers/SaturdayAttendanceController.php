@@ -41,7 +41,6 @@ class SaturdayAttendanceController extends Controller
 
         if ($user->role->canReviewAttendances()) {
             $attendances = SaturdayAttendance::query()
-                ->with('user')
                 ->whereDate('attended_on', $date->toDateString())
                 ->get()
                 ->keyBy('user_id');
@@ -49,7 +48,7 @@ class SaturdayAttendanceController extends Controller
             $members = User::query()
                 ->orderBy('name')
                 ->orderBy('id')
-                ->get()
+                ->get(['id', 'nim', 'name'])
                 ->map(function (User $member) use ($attendances): array {
                     return [
                         'user' => $member,
@@ -124,7 +123,7 @@ class SaturdayAttendanceController extends Controller
             ->with('status', $message));
     }
 
-    public function store(StoreSaturdayAttendanceRequest $request, StoreSaturdayAttendance $store): RedirectResponse
+    public function store(StoreSaturdayAttendanceRequest $request, StoreSaturdayAttendance $store): JsonResponse|RedirectResponse
     {
         $store->handle($request->user(), $request->file('photo'), [
             'latitude' => (float) $request->input('latitude'),
@@ -132,9 +131,14 @@ class SaturdayAttendanceController extends Controller
             'accuracy' => $request->filled('accuracy') ? (int) round((float) $request->input('accuracy')) : null,
         ]);
 
-        return redirect()
+        $message = 'Hadir Sabtu tercatat. Ini rekap kelas ke dosen, bukan presensi UNPAM.';
+
+        return $this->respond($request, [
+            'message' => $message,
+            'redirect' => route('attendances.index'),
+        ], redirect()
             ->route('attendances.index')
-            ->with('status', 'Hadir Sabtu tercatat. Ini rekap kelas ke dosen, bukan presensi UNPAM.');
+            ->with('status', $message));
     }
 
     public function photo(SaturdayAttendance $saturdayAttendance): StreamedResponse
@@ -146,7 +150,9 @@ class SaturdayAttendanceController extends Controller
             404,
         );
 
-        return Storage::disk('local')->response($saturdayAttendance->photo_path, $saturdayAttendance->user?->name ?? 'hadir');
+        return Storage::disk('local')->response($saturdayAttendance->photo_path, 'hadir.jpg', [
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
     }
 
     public function report(Request $request): View
@@ -160,7 +166,6 @@ class SaturdayAttendanceController extends Controller
         }
 
         $attendances = SaturdayAttendance::query()
-            ->with('user')
             ->whereDate('attended_on', $date->toDateString())
             ->get()
             ->keyBy('user_id');
@@ -168,7 +173,7 @@ class SaturdayAttendanceController extends Controller
         $rows = User::query()
             ->orderBy('name')
             ->orderBy('id')
-            ->get()
+            ->get(['id', 'nim', 'name'])
             ->map(function (User $member) use ($attendances): array {
                 return [
                     'user' => $member,

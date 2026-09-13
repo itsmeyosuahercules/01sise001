@@ -19,7 +19,7 @@ class AnnouncementCommentController extends Controller
         ]);
 
         $comment->setRelation('announcement', $announcement);
-        $comment->load('author');
+        $comment->load('author:id,name,nim,bio,avatar_path,updated_at');
 
         return $this->respond($request, [
             'html' => view('announcements._comment', ['comment' => $comment])->render(),

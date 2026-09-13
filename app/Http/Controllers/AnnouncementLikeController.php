@@ -30,7 +30,7 @@ class AnnouncementLikeController extends Controller
 
     private function likeResponse(Request $request, Announcement $announcement, bool $liked, string $message): JsonResponse|RedirectResponse
     {
-        $announcement->load(['likes' => fn ($query) => $query->with('user')->latest('id')]);
+        $announcement->load(['likes' => fn ($query) => $query->with('user:id,name,nim,bio,avatar_path,updated_at')->latest('id')]);
 
         return $this->respond($request, [
             'liked' => $liked,

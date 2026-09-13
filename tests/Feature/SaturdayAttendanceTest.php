@@ -61,6 +61,25 @@ class SaturdayAttendanceTest extends TestCase
         Storage::disk('local')->assertExists($attendance->photo_path);
     }
 
+    public function test_a_check_in_can_be_submitted_as_json(): void
+    {
+        Storage::fake('local');
+
+        $member = User::factory()->anggota()->create();
+
+        $this->actingAs($member)
+            ->postJson(route('attendances.store'), [
+                'photo' => UploadedFile::fake()->image('wajah.jpg', 240, 240),
+                'latitude' => -6.2615123,
+                'longitude' => 106.6640456,
+                'accuracy' => 17,
+            ])
+            ->assertOk()
+            ->assertJsonPath('redirect', route('attendances.index'));
+
+        $this->assertSame(1, SaturdayAttendance::query()->count());
+    }
+
     public function test_members_cannot_check_in_outside_saturday(): void
     {
         Storage::fake('local');
@@ -171,7 +190,8 @@ class SaturdayAttendanceTest extends TestCase
             ->assertSee('Tidak hadir')
             ->assertSee('Aida Kamila')
             ->assertSee('Nur Via Rela')
-            ->assertSee('Unduh PDF');
+            ->assertSee('Unduh PDF')
+            ->assertSee('Lihat');
 
         $this->actingAs($km)
             ->get(route('attendances.report', ['tanggal' => '2026-09-05']))

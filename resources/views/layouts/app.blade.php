@@ -28,7 +28,7 @@
                         <x-brand compact />
                     </div>
                     <a href="{{ route('profiles.edit') }}" class="flex min-w-0 items-center gap-3">
-                        <x-avatar :user="auth()->user()" size="sm" />
+                        <x-avatar :user="auth()->user()" size="sm" :lazy="false" />
                         <div class="min-w-0">
                             <p class="truncate text-sm font-medium">{{ auth()->user()->name }}</p>
                             <p class="truncate text-xs text-ink/50">{{ auth()->user()->nim }} · {{ auth()->user()->role->label() }}</p>

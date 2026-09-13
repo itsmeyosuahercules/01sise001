@@ -361,22 +361,33 @@ if (attendanceForm) {
     const camStatus = attendanceForm.querySelector('[data-attendance-cam]');
     const submit = attendanceForm.querySelector('[data-attendance-submit]');
     const photo = attendanceForm.querySelector('[data-attendance-photo]');
+    const fallback = attendanceForm.querySelector('[data-attendance-fallback]');
+    const nativeBtn = attendanceForm.querySelector('[data-attendance-native]');
     const preview = attendanceForm.querySelector('[data-attendance-preview]');
     const video = attendanceForm.querySelector('[data-attendance-video]');
     const canvas = attendanceForm.querySelector('[data-attendance-canvas]');
     const snap = attendanceForm.querySelector('[data-attendance-snap]');
     const resnap = attendanceForm.querySelector('[data-attendance-resnap]');
-    let hasPhoto = false;
+    let capturedBlob = null;
+    let submitting = false;
     let activeStream = null;
 
     const stopCamera = () => {
         activeStream?.getTracks().forEach((track) => track.stop());
         activeStream = null;
-        video.srcObject = null;
+
+        if (video) {
+            video.srcObject = null;
+        }
     };
 
-    const refreshSubmit = () => {
-        submit.disabled = ! (latInput.value && lngInput.value && hasPhoto);
+    const showNativeFallback = (message) => {
+        nativeBtn?.classList.remove('hidden');
+        snap?.classList.add('hidden');
+
+        if (message) {
+            camStatus.textContent = message;
+        }
     };
 
     const applyPosition = (position) => {
@@ -384,29 +395,122 @@ if (attendanceForm) {
         lngInput.value = position.coords.longitude.toFixed(7);
         accuracyInput.value = Math.round(position.coords.accuracy || 0);
         geoStatus.textContent = `Lokasi hidup siap (±${accuracyInput.value} m).`;
-        refreshSubmit();
     };
 
     const failPosition = () => {
-        geoStatus.textContent = 'Lokasi wajib hidup. Izinkan akses lokasi, lalu muat ulang halaman.';
-        refreshSubmit();
+        geoStatus.textContent = 'Lokasi belum didapat. Izinkan lokasi, nyalakan GPS, lalu tekan ulang "Ambil lokasi".';
+    };
+
+    const requestLocation = () => {
+        if (! navigator.geolocation) {
+            failPosition();
+            geoStatus.textContent = 'Browser ini tidak mendukung lokasi. Buka di Chrome atau Safari.';
+            return;
+        }
+
+        geoStatus.textContent = 'Mengambil lokasi hidup… Izinkan akses lokasi.';
+
+        const onFail = () => {
+            navigator.geolocation.getCurrentPosition(applyPosition, failPosition, {
+                enableHighAccuracy: false,
+                timeout: 12000,
+                maximumAge: 60000,
+            });
+        };
+
+        navigator.geolocation.getCurrentPosition(applyPosition, onFail, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 15000,
+        });
+    };
+
+    const attachPhoto = (blob) => {
+        capturedBlob = blob;
+
+        if (preview?.src) {
+            URL.revokeObjectURL(preview.src);
+        }
+
+        preview.src = URL.createObjectURL(blob);
+        video.classList.add('hidden');
+        preview.classList.remove('hidden');
+        snap?.classList.add('hidden');
+        resnap?.classList.remove('hidden');
+        camStatus.textContent = 'Foto tersimpan. Kirim, atau jepret ulang.';
+        stopCamera();
+    };
+
+    const canvasToJpeg = (source, mirror, onReady) => {
+        const maxWidth = 720;
+        const width = source.videoWidth || source.naturalWidth || source.width;
+        const height = source.videoHeight || source.naturalHeight || source.height;
+
+        if (! width || ! height) {
+            toast('Foto belum siap. Coba lagi.', 'error');
+            return;
+        }
+
+        const scale = Math.min(1, maxWidth / width);
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        const context = canvas.getContext('2d');
+
+        if (! context) {
+            toast('Jepret gagal. Coba browser lain.', 'error');
+            return;
+        }
+
+        context.save();
+
+        if (mirror) {
+            context.translate(canvas.width, 0);
+            context.scale(-1, 1);
+        }
+
+        context.drawImage(source, 0, 0, canvas.width, canvas.height);
+        context.restore();
+
+        const finish = (blob) => {
+            if (! blob) {
+                toast('Jepret gagal. Coba lagi.', 'error');
+                return;
+            }
+
+            onReady(blob);
+        };
+
+        if (typeof canvas.toBlob === 'function') {
+            canvas.toBlob(finish, 'image/jpeg', 0.82);
+            return;
+        }
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        const bytes = atob(dataUrl.split(',')[1] ?? '');
+        const buffer = new Uint8Array(bytes.length);
+
+        for (let i = 0; i < bytes.length; i += 1) {
+            buffer[i] = bytes.charCodeAt(i);
+        }
+
+        finish(new Blob([buffer], { type: 'image/jpeg' }));
     };
 
     const showLive = () => {
+        capturedBlob = null;
         video.classList.remove('hidden');
         preview.classList.add('hidden');
-        snap.classList.remove('hidden');
-        resnap.classList.add('hidden');
-        hasPhoto = false;
+        snap?.classList.remove('hidden');
+        resnap?.classList.add('hidden');
+
         if (photo) {
             photo.value = '';
         }
-        refreshSubmit();
     };
 
     const startCamera = async () => {
         if (! navigator.mediaDevices?.getUserMedia) {
-            camStatus.textContent = 'Browser ini tidak mendukung kamera langsung. Buka di Chrome atau Safari.';
+            showNativeFallback('Kamera langsung tidak tersedia. Pakai tombol "Ambil lewat kamera HP", atau buka di Chrome/Safari.');
             return;
         }
 
@@ -416,71 +520,28 @@ if (attendanceForm) {
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 } },
+                video: { facingMode: { ideal: 'user' }, width: { ideal: 480 }, height: { ideal: 640 } },
                 audio: false,
             });
             activeStream = stream;
             video.srcObject = stream;
             camStatus.textContent = 'Kamera siap. Arahkan muka, lalu tekan Jepret.';
         } catch {
-            camStatus.textContent = 'Izinkan kamera depan, lalu muat ulang halaman.';
+            showNativeFallback('Kamera ditolak atau diblokir. Izinkan kamera, atau pakai "Ambil lewat kamera HP". Jangan buka dari dalam WhatsApp.');
         }
     };
 
-    if (! navigator.geolocation) {
-        failPosition();
-    } else {
-        navigator.geolocation.getCurrentPosition(applyPosition, failPosition, {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 0,
-        });
-        navigator.geolocation.watchPosition(applyPosition, () => {}, {
-            enableHighAccuracy: true,
-            maximumAge: 0,
-        });
-    }
-
+    requestLocation();
     startCamera();
 
     snap?.addEventListener('click', () => {
         if (! video.videoWidth) {
-            toast('Tunggu kamera menyala dulu.', 'error');
+            toast('Tunggu kamera menyala dulu, atau pakai "Ambil lewat kamera HP".', 'error');
+            showNativeFallback();
             return;
         }
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const context = canvas.getContext('2d');
-
-        if (context) {
-            context.save();
-            context.translate(canvas.width, 0);
-            context.scale(-1, 1);
-            context.drawImage(video, 0, 0);
-            context.restore();
-        }
-
-        canvas.toBlob((blob) => {
-            if (! blob) {
-                toast('Jepret gagal. Coba lagi.', 'error');
-                return;
-            }
-
-            const file = new File([blob], 'wajah.jpg', { type: 'image/jpeg' });
-            const transfer = new DataTransfer();
-            transfer.items.add(file);
-            photo.files = transfer.files;
-            preview.src = URL.createObjectURL(blob);
-            video.classList.add('hidden');
-            preview.classList.remove('hidden');
-            snap.classList.add('hidden');
-            resnap.classList.remove('hidden');
-            hasPhoto = true;
-            camStatus.textContent = 'Foto tersimpan. Kirim, atau jepret ulang.';
-            stopCamera();
-            refreshSubmit();
-        }, 'image/jpeg', 0.9);
+        canvasToJpeg(video, true, attachPhoto);
     });
 
     resnap?.addEventListener('click', () => {
@@ -489,19 +550,80 @@ if (attendanceForm) {
         camStatus.textContent = 'Menghidupkan kamera…';
     });
 
-    window.addEventListener('pagehide', stopCamera);
+    nativeBtn?.addEventListener('click', () => fallback?.click());
 
-    attendanceForm.addEventListener('submit', (event) => {
-        if (! latInput.value || ! lngInput.value) {
-            event.preventDefault();
-            failPosition();
-            toast('Izinkan lokasi hidup sebelum mengirim hadir.', 'error');
+    fallback?.addEventListener('change', () => {
+        const file = fallback.files?.[0];
+
+        if (! file) {
             return;
         }
 
-        if (! photo.files?.length) {
-            event.preventDefault();
+        const image = new Image();
+        image.onload = () => canvasToJpeg(image, false, attachPhoto);
+        image.onerror = () => toast('Foto tidak bisa dibaca. Coba jepret ulang.', 'error');
+        image.src = URL.createObjectURL(file);
+    });
+
+    attendanceForm.querySelector('[data-attendance-geo-retry]')?.addEventListener('click', requestLocation);
+
+    window.addEventListener('pagehide', stopCamera);
+
+    attendanceForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        if (submitting) {
+            return;
+        }
+
+        if (! latInput.value || ! lngInput.value) {
+            requestLocation();
+            toast('Izinkan lokasi hidup dulu, lalu kirim lagi.', 'error');
+            return;
+        }
+
+        if (! capturedBlob && ! photo.files?.length) {
             toast('Jepret foto muka dulu.', 'error');
+            return;
+        }
+
+        submitting = true;
+        const original = submit.textContent;
+        submit.textContent = 'Mengirim…';
+        submit.setAttribute('aria-busy', 'true');
+
+        const body = new FormData(attendanceForm);
+        body.set('photo', capturedBlob || photo.files[0], 'wajah.jpg');
+
+        try {
+            const response = await fetch(attendanceForm.action, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body,
+                credentials: 'same-origin',
+            });
+
+            const payload = await readJson(response);
+
+            if (response.status === 422) {
+                const errors = payload.errors ? Object.values(payload.errors).flat() : ['Data tidak valid.'];
+                throw new Error(errors[0]);
+            }
+
+            if (! response.ok) {
+                throw new Error(payload.message || 'Kirim hadir gagal. Coba lagi.');
+            }
+
+            window.location.assign(payload.redirect || attendanceForm.getAttribute('action') || window.location.href);
+        } catch (error) {
+            submitting = false;
+            submit.textContent = original;
+            submit.removeAttribute('aria-busy');
+            toast(error instanceof Error ? error.message : 'Kirim hadir gagal.', 'error');
         }
     });
 }

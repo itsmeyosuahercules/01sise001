@@ -39,7 +39,7 @@
                 <a
                     href="{{ route('announcements.show', $announcement) }}"
                     data-filter-row
-                    data-search="{{ $announcement->title }} {{ $announcement->body }}"
+                    data-search="{{ $announcement->title }} {{ \Illuminate\Support\Str::limit($announcement->body, 160, '') }}"
                     data-category="{{ $announcement->category->value }}"
                     data-read="{{ $announcement->isReadBy(auth()->user()) ? '1' : '0' }}"
                     class="block rounded-2xl border border-line bg-card p-5 transition hover:border-navy/25"

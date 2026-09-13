@@ -71,7 +71,8 @@ class ProfileTest extends TestCase
 
         $this->actingAs($member)
             ->get(route('profiles.photo', $member))
-            ->assertOk();
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'max-age=86400, private');
 
         $this->actingAs($member)
             ->patch(route('profiles.update'), [

@@ -64,7 +64,7 @@
                     @forelse ($questions as $question)
                         <tr
                             data-filter-row
-                            data-search="{{ $question->author?->name }} {{ $question->author?->nim }} {{ $question->topic }} {{ $question->body }}"
+                            data-search="{{ $question->author?->name }} {{ $question->author?->nim }} {{ $question->topic }} {{ \Illuminate\Support\Str::limit($question->body, 120, '') }}"
                             data-kind="{{ $question->kind->value }}"
                             data-status="{{ $question->status->value }}"
                             class="border-b border-line/70 last:border-0 align-top"

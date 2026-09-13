@@ -1,4 +1,4 @@
-@props(['user', 'size' => 'md'])
+@props(['user', 'size' => 'md', 'lazy' => true])
 
 @php
     $box = match ($size) {
@@ -10,8 +10,12 @@
 
 @if ($user?->hasAvatar())
     <img
-        src="{{ route('profiles.photo', $user) }}"
+        src="{{ route('profiles.photo', $user) }}?v={{ $user->updated_at?->timestamp ?? 0 }}"
         alt=""
+        @if ($lazy)
+            loading="lazy"
+            decoding="async"
+        @endif
         {{ $attributes->merge(['class' => $box.' shrink-0 rounded-full bg-navy/10 object-cover']) }}
     >
 @else

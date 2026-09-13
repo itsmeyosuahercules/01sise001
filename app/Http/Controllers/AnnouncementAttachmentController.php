@@ -14,9 +14,11 @@ class AnnouncementAttachmentController extends Controller
     {
         $this->authorize('view', $announcement);
 
+        $headers = ['Cache-Control' => 'private, max-age=86400'];
+
         return $attachment->isImage()
-            ? Storage::disk($attachment->disk)->response($attachment->path, $attachment->original_name)
-            : Storage::disk($attachment->disk)->download($attachment->path, $attachment->original_name);
+            ? Storage::disk($attachment->disk)->response($attachment->path, $attachment->original_name, $headers)
+            : Storage::disk($attachment->disk)->download($attachment->path, $attachment->original_name, $headers);
     }
 
     public function destroy(Announcement $announcement, AnnouncementAttachment $attachment): RedirectResponse

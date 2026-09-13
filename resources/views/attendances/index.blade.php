@@ -37,18 +37,23 @@
                 </div>
                 <canvas data-attendance-canvas class="hidden"></canvas>
                 <input type="file" name="photo" accept="image/jpeg" data-attendance-photo class="sr-only" tabindex="-1">
+                <input type="file" accept="image/*" capture="user" data-attendance-fallback class="sr-only" tabindex="-1">
                 <div class="mt-3 flex flex-wrap gap-2">
                     <x-btn type="button" data-attendance-snap>Jepret</x-btn>
                     <x-btn type="button" variant="secondary" data-attendance-resnap class="hidden">Jepret ulang</x-btn>
+                    <x-btn type="button" variant="secondary" data-attendance-native class="hidden">Ambil lewat kamera HP</x-btn>
                 </div>
                 <p data-attendance-cam class="mt-2 text-sm text-ink/60">Menghidupkan kamera depan… Izinkan akses kamera.</p>
-                <p class="mt-1 text-xs text-ink/50">Kamera depan langsung. Jepret, cek hasilnya, lalu kirim bersama lokasi hidup.</p>
+                <p class="mt-1 text-xs text-ink/50">Buka di Chrome atau Safari (jangan dari dalam WhatsApp). Izinkan kamera dan lokasi, jepret, lalu kirim.</p>
                 @error('photo')
                     <p class="mt-1 text-sm text-accent-hot">{{ $message }}</p>
                 @enderror
             </div>
 
-            <p data-attendance-geo class="text-sm text-ink/60">Mengambil lokasi hidup… Izinkan akses lokasi di browser.</p>
+            <div class="flex flex-wrap items-center gap-2">
+                <p data-attendance-geo class="text-sm text-ink/60">Mengambil lokasi hidup… Izinkan akses lokasi di browser.</p>
+                <button type="button" data-attendance-geo-retry class="text-sm text-navy hover:underline">Ambil lokasi</button>
+            </div>
             @error('latitude')
                 <p class="text-sm text-accent-hot">{{ $message }}</p>
             @enderror
@@ -57,7 +62,7 @@
                 <p class="text-sm text-navy">Sudah tercatat {{ $mine->captured_at?->timezone(config('app.timezone'))->format('H:i') }}. Kirim lagi untuk mengganti foto/lokasi.</p>
             @endif
 
-            <x-btn type="submit" data-attendance-submit disabled>Kirim hadir</x-btn>
+            <x-btn type="submit" data-attendance-submit>Kirim hadir</x-btn>
         </form>
     @elseif ($mine)
         <div class="mt-6 max-w-xl rounded-2xl border border-line bg-card p-5">
@@ -109,9 +114,7 @@
                             <tr class="border-b border-line/70 last:border-0" data-attendance-row>
                                 <td class="px-4 py-3" data-attendance-photo-cell>
                                     @if ($attendance && $attendance->hasPhoto())
-                                        <a href="{{ route('attendances.photo', $attendance) }}">
-                                            <img src="{{ route('attendances.photo', $attendance) }}" alt="" class="size-12 rounded-lg object-cover">
-                                        </a>
+                                        <a href="{{ route('attendances.photo', $attendance) }}" class="text-navy hover:underline" target="_blank" rel="noreferrer">Lihat</a>
                                     @else
                                         <span class="text-ink/40">—</span>
                                     @endif

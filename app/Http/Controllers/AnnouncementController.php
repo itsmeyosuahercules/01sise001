@@ -24,9 +24,7 @@ class AnnouncementController extends Controller
         $announcements = Announcement::query()
             ->visible()
             ->with([
-                'author',
                 'reads' => fn ($query) => $query->whereBelongsTo($user),
-                'likes' => fn ($query) => $query->whereBelongsTo($user),
             ])
             ->withCount(['reads', 'likes', 'comments', 'attachments'])
             ->orderByDesc('is_pinned')
@@ -75,11 +73,11 @@ class AnnouncementController extends Controller
         $announcement->markReadBy($request->user());
 
         $announcement->load([
-            'author',
+            'author:id,name,nim,bio,avatar_path,updated_at',
             'attachments',
-            'reads.user',
-            'likes' => fn ($query) => $query->with('user')->latest('id'),
-            'comments' => fn ($query) => $query->with('author')->orderBy('created_at')->orderBy('id'),
+            'reads.user:id,name,nim',
+            'likes' => fn ($query) => $query->with('user:id,name,nim,bio,avatar_path,updated_at')->latest('id'),
+            'comments' => fn ($query) => $query->with('author:id,name,nim,bio,avatar_path,updated_at')->orderBy('created_at')->orderBy('id'),
         ])->loadCount(['likes', 'comments', 'reads']);
 
         return view('announcements.show', [

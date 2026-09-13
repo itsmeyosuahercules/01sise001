@@ -19,9 +19,7 @@ class DashboardController extends Controller
         $announcements = Announcement::query()
             ->visible()
             ->with([
-                'author',
                 'reads' => fn ($query) => $query->whereBelongsTo($user),
-                'likes' => fn ($query) => $query->whereBelongsTo($user),
             ])
             ->withCount(['likes', 'comments', 'attachments'])
             ->orderByDesc('is_pinned')
