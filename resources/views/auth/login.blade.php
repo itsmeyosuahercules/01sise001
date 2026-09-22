@@ -1,13 +1,11 @@
 @extends('layouts.guest')
 
 @section('content')
-    <form method="POST" action="{{ route('login') }}" class="rounded-3xl border border-white/40 bg-card/95 p-6 shadow-2xl backdrop-blur sm:p-8">
+    <form method="POST" action="{{ route('login') }}" class="rounded-[28px] border border-white/60 bg-white/92 p-6 shadow-2xl ring-1 ring-white/40 backdrop-blur-xl sm:p-8">
         @csrf
         <x-brand />
-        <p class="mt-4 text-sm leading-6 text-ink/65 lg:hidden">
-            Papan kelas Sistem Informasi. Info dua arah, tanpa chat yang menimbun pengumuman.
-        </p>
-        <h2 class="mt-6 text-xl font-semibold tracking-tight">Masuk ke kelas</h2>
+        <h2 class="mt-6 text-2xl font-semibold tracking-tight">Masuk ke kelas</h2>
+        <p class="mt-1 text-sm leading-6 text-ink/60">Papan kelas. Kabar, hadir, dan tanya dosen ada di sini.</p>
 
         <label class="mt-5 block text-sm font-medium" for="nim">NIM</label>
         <input
@@ -20,7 +18,7 @@
             inputmode="numeric"
             autocomplete="username"
             placeholder="Contoh 261091700008"
-            class="mt-1.5 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm outline-none focus:border-navy"
+            class="mt-1.5 w-full rounded-2xl border border-line bg-white px-3.5 py-3 text-base outline-none ring-navy/15 focus:border-navy focus:ring-4 sm:text-sm"
         >
         @error('nim')
             <p class="mt-1 text-sm text-accent-hot">{{ $message }}</p>
@@ -33,7 +31,7 @@
             name="password"
             required
             autocomplete="current-password"
-            class="mt-1.5 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm outline-none focus:border-navy"
+            class="mt-1.5 w-full rounded-2xl border border-line bg-white px-3.5 py-3 text-base outline-none ring-navy/15 focus:border-navy focus:ring-4 sm:text-sm"
         >
         @error('password')
             <p class="mt-1 text-sm text-accent-hot">{{ $message }}</p>
