@@ -29,6 +29,14 @@
             <input type="hidden" name="longitude" data-attendance-lng>
             <input type="hidden" name="accuracy" data-attendance-accuracy>
 
+            <div data-attendance-gate class="rounded-2xl border border-line bg-paper p-4">
+                <p class="text-sm font-medium">Izinkan kamera dan lokasi</p>
+                <p class="mt-1 text-sm text-ink/65">Popup izin harus dari Safari atau Chrome. Situs tidak bisa menyetujuinya otomatis. Ketuk tombol, lalu pilih Izinkan.</p>
+                <p class="mt-1 text-xs text-ink/50">Di iPhone, buka lewat Safari (bukan dari dalam WhatsApp). Kalau popup tidak muncul: ketuk ikon di bilah alamat, lalu setel Kamera dan Lokasi ke Izinkan.</p>
+                <x-btn type="button" data-attendance-allow class="mt-3">Izinkan kamera & lokasi</x-btn>
+            </div>
+
+            <div data-attendance-live class="hidden space-y-4">
             <div>
                 <label class="block text-sm font-medium">Foto muka</label>
                 <div class="mt-1.5 overflow-hidden rounded-2xl bg-navy/5">
@@ -41,7 +49,7 @@
                 <div class="mt-3 flex flex-wrap gap-2">
                     <x-btn type="button" data-attendance-snap>Jepret</x-btn>
                     <x-btn type="button" variant="secondary" data-attendance-resnap class="hidden">Jepret ulang</x-btn>
-                    <x-btn type="button" variant="secondary" data-attendance-native class="hidden">Ambil lewat kamera HP</x-btn>
+                    <x-btn type="button" variant="secondary" data-attendance-native>Ambil lewat kamera HP</x-btn>
                 </div>
                 <p data-attendance-cam class="mt-2 text-sm text-ink/60">Menghidupkan kamera depan… Izinkan akses kamera.</p>
                 <p class="mt-1 text-xs text-ink/50">Buka di Chrome atau Safari (jangan dari dalam WhatsApp). Izinkan kamera dan lokasi, jepret, lalu kirim.</p>
@@ -63,6 +71,7 @@
             @endif
 
             <x-btn type="submit" data-attendance-submit>Kirim hadir</x-btn>
+            </div>
         </form>
     @elseif ($mine)
         <div class="mt-6 max-w-xl rounded-2xl border border-line bg-card p-5">

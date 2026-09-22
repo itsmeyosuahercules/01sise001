@@ -25,7 +25,7 @@ class StoreSaturdayAttendanceRequest extends FormRequest
             'photo' => ['required', 'image', 'max:'.$config['max_kilobytes'], 'mimes:'.implode(',', $config['mimes'])],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'accuracy' => ['nullable', 'numeric', 'min:0', 'max:5000'],
+            'accuracy' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
         ];
     }
 

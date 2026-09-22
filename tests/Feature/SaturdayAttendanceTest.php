@@ -80,6 +80,24 @@ class SaturdayAttendanceTest extends TestCase
         $this->assertSame(1, SaturdayAttendance::query()->count());
     }
 
+    public function test_a_coarse_campus_location_is_still_accepted(): void
+    {
+        Storage::fake('local');
+
+        $member = User::factory()->anggota()->create();
+
+        $this->actingAs($member)
+            ->post(route('attendances.store'), [
+                'photo' => UploadedFile::fake()->image('wajah.jpg', 120, 120),
+                'latitude' => -6.2615123,
+                'longitude' => 106.6640456,
+                'accuracy' => 12000,
+            ])
+            ->assertRedirect(route('attendances.index'));
+
+        $this->assertSame(12000, SaturdayAttendance::query()->first()?->accuracy);
+    }
+
     public function test_members_cannot_check_in_outside_saturday(): void
     {
         Storage::fake('local');

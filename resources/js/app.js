@@ -368,9 +368,13 @@ if (attendanceForm) {
     const canvas = attendanceForm.querySelector('[data-attendance-canvas]');
     const snap = attendanceForm.querySelector('[data-attendance-snap]');
     const resnap = attendanceForm.querySelector('[data-attendance-resnap]');
+    const gate = attendanceForm.querySelector('[data-attendance-gate]');
+    const live = attendanceForm.querySelector('[data-attendance-live]');
     let capturedBlob = null;
     let submitting = false;
     let activeStream = null;
+    let watchId = null;
+    let bestAccuracy = Number.POSITIVE_INFINITY;
 
     const stopCamera = () => {
         activeStream?.getTracks().forEach((track) => track.stop());
@@ -382,46 +386,71 @@ if (attendanceForm) {
     };
 
     const showNativeFallback = (message) => {
-        nativeBtn?.classList.remove('hidden');
-        snap?.classList.add('hidden');
-
         if (message) {
             camStatus.textContent = message;
         }
     };
 
     const applyPosition = (position) => {
-        latInput.value = position.coords.latitude.toFixed(7);
-        lngInput.value = position.coords.longitude.toFixed(7);
-        accuracyInput.value = Math.round(position.coords.accuracy || 0);
-        geoStatus.textContent = `Lokasi hidup siap (±${accuracyInput.value} m).`;
+        const meters = Number.isFinite(position.coords.accuracy) ? Math.round(position.coords.accuracy) : 0;
+
+        if (latInput.value && meters > 0 && bestAccuracy < Number.POSITIVE_INFINITY && meters > bestAccuracy) {
+            return;
+        }
+
+        if (meters > 0) {
+            bestAccuracy = meters;
+        }
+
+        latInput.value = Number(position.coords.latitude).toFixed(7);
+        lngInput.value = Number(position.coords.longitude).toFixed(7);
+        accuracyInput.value = meters > 0 ? String(Math.min(meters, 1000000)) : '';
+        geoStatus.textContent = meters > 0
+            ? `Lokasi siap: ${latInput.value}, ${lngInput.value} (±${meters} m)`
+            : `Lokasi siap: ${latInput.value}, ${lngInput.value}`;
     };
 
-    const failPosition = () => {
-        geoStatus.textContent = 'Lokasi belum didapat. Izinkan lokasi, nyalakan GPS, lalu tekan ulang "Ambil lokasi".';
+    const locationError = (error) => {
+        if (latInput.value) {
+            return;
+        }
+
+        if (error?.code === 1) {
+            geoStatus.textContent = 'Lokasi ditolak. Ketuk ikon di bilah alamat, setel Lokasi ke Izinkan, lalu ketuk Ambil lokasi. Di iPhone lakukan ini di Safari.';
+            return;
+        }
+
+        if (error?.code === 3) {
+            geoStatus.textContent = 'GPS masih mencari. Tunggu sebentar atau ketuk Ambil lokasi lagi. Pastikan Layanan Lokasi menyala.';
+            return;
+        }
+
+        geoStatus.textContent = 'Lokasi belum didapat. Nyalakan GPS, lalu ketuk Ambil lokasi.';
     };
 
     const requestLocation = () => {
         if (! navigator.geolocation) {
-            failPosition();
             geoStatus.textContent = 'Browser ini tidak mendukung lokasi. Buka di Chrome atau Safari.';
             return;
         }
 
-        geoStatus.textContent = 'Mengambil lokasi hidup… Izinkan akses lokasi.';
+        if (! latInput.value) {
+            geoStatus.textContent = 'Mengambil lokasi… Pilih Izinkan pada popup browser.';
+        }
 
-        const onFail = () => {
-            navigator.geolocation.getCurrentPosition(applyPosition, failPosition, {
-                enableHighAccuracy: false,
-                timeout: 12000,
-                maximumAge: 60000,
-            });
-        };
+        navigator.geolocation.getCurrentPosition(applyPosition, locationError, {
+            enableHighAccuracy: false,
+            timeout: 8000,
+            maximumAge: 60000,
+        });
 
-        navigator.geolocation.getCurrentPosition(applyPosition, onFail, {
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+        }
+
+        watchId = navigator.geolocation.watchPosition(applyPosition, () => {}, {
             enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 15000,
+            maximumAge: 0,
         });
     };
 
@@ -525,14 +554,20 @@ if (attendanceForm) {
             });
             activeStream = stream;
             video.srcObject = stream;
-            camStatus.textContent = 'Kamera siap. Arahkan muka, lalu tekan Jepret.';
+            video.muted = true;
+            await video.play().catch(() => {});
+            camStatus.textContent = 'Kamera siap. Arahkan muka, lalu tekan Jepret. Di iPhone, kalau layar hitam, pakai Ambil lewat kamera HP.';
         } catch {
             showNativeFallback('Kamera ditolak atau diblokir. Izinkan kamera, atau pakai "Ambil lewat kamera HP". Jangan buka dari dalam WhatsApp.');
         }
     };
 
-    requestLocation();
-    startCamera();
+    attendanceForm.querySelector('[data-attendance-allow]')?.addEventListener('click', () => {
+        gate?.classList.add('hidden');
+        live?.classList.remove('hidden');
+        requestLocation();
+        startCamera();
+    });
 
     snap?.addEventListener('click', () => {
         if (! video.videoWidth) {
@@ -567,7 +602,13 @@ if (attendanceForm) {
 
     attendanceForm.querySelector('[data-attendance-geo-retry]')?.addEventListener('click', requestLocation);
 
-    window.addEventListener('pagehide', stopCamera);
+    window.addEventListener('pagehide', () => {
+        stopCamera();
+
+        if (watchId !== null) {
+            navigator.geolocation?.clearWatch(watchId);
+        }
+    });
 
     attendanceForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -576,9 +617,14 @@ if (attendanceForm) {
             return;
         }
 
+        if (live?.classList.contains('hidden')) {
+            toast('Ketuk Izinkan kamera & lokasi dulu, lalu pilih Izinkan pada popup browser.', 'error');
+            return;
+        }
+
         if (! latInput.value || ! lngInput.value) {
             requestLocation();
-            toast('Izinkan lokasi hidup dulu, lalu kirim lagi.', 'error');
+            toast('Lokasi belum masuk. Pilih Izinkan, atau ketuk Ambil lokasi.', 'error');
             return;
         }
 
