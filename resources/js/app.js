@@ -711,3 +711,73 @@ if (attendanceForm) {
         }
     });
 }
+
+document.querySelectorAll('[data-format-bar]').forEach((bar) => {
+    const field = bar.parentElement?.querySelector('[data-format-input]');
+
+    if (! (field instanceof HTMLTextAreaElement)) {
+        return;
+    }
+
+    const replaceSelection = (next, cursorStart, cursorEnd) => {
+        const start = field.selectionStart ?? field.value.length;
+        field.setRangeText(next, start, field.selectionEnd ?? start, 'end');
+        field.setSelectionRange(cursorStart, cursorEnd);
+        field.focus();
+    };
+
+    bar.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-format]');
+
+        if (! (button instanceof HTMLButtonElement)) {
+            return;
+        }
+
+        const start = field.selectionStart ?? 0;
+        const end = field.selectionEnd ?? start;
+        const selected = field.value.slice(start, end);
+        const format = button.dataset.format;
+
+        if (format === 'bold') {
+            const inner = selected || 'tebal';
+            replaceSelection(`*${inner}*`, start + 1, start + 1 + inner.length);
+
+            return;
+        }
+
+        if (format === 'italic') {
+            const inner = selected || 'miring';
+            replaceSelection(`_${inner}_`, start + 1, start + 1 + inner.length);
+
+            return;
+        }
+
+        if (format === 'link') {
+            const url = window.prompt('Tempel alamat situs. Diawali https://', 'https://');
+
+            if (! url) {
+                return;
+            }
+
+            const clean = url.trim();
+
+            if (! /^https?:\/\//i.test(clean)) {
+                toast('Alamat harus diawali https://', 'error');
+
+                return;
+            }
+
+            const label = selected || 'tautan';
+            const next = `[${label}](${clean})`;
+            replaceSelection(next, start + 1, start + 1 + label.length);
+
+            return;
+        }
+
+        if (format === 'list') {
+            const source = selected || 'poin';
+            const next = source.split('\n').map((line) => (line.startsWith('- ') ? line : `- ${line}`)).join('\n');
+            replaceSelection(next, start, start + next.length);
+        }
+    });
+});

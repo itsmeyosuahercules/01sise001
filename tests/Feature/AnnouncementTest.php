@@ -94,6 +94,24 @@ class AnnouncementTest extends TestCase
         $response->assertRedirect('/announcements/uts-basis-data');
     }
 
+    public function test_announcement_detail_renders_simple_formatting(): void
+    {
+        $member = User::factory()->anggota()->create();
+        $announcement = Announcement::factory()->create([
+            'title' => 'Ringkasan kelas',
+            'body' => "Halo kelas\n\nIni *penting*.\nLihat [jadwal](https://example.com/kelas).\n\n- bawa laptop\n- datang jam 7",
+        ]);
+
+        $this->actingAs($member)
+            ->get(route('announcements.show', $announcement))
+            ->assertOk()
+            ->assertSee('Kembali ke info')
+            ->assertSee('<strong>penting</strong>', false)
+            ->assertSee('href="https://example.com/kelas"', false)
+            ->assertSee('<li>bawa laptop</li>', false)
+            ->assertDontSee('<script>alert', false);
+    }
+
     public function test_visiting_an_announcement_marks_it_as_read(): void
     {
         $member = User::factory()->anggota()->create();

@@ -8,26 +8,21 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="min-h-screen bg-navy font-sans text-ink antialiased">
-        <div class="relative flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
-            <img
-                src="{{ asset('images/kelas.jpg') }}"
-                alt=""
-                class="absolute inset-0 h-full w-full object-cover object-[center_20%]"
-            >
-            <div class="absolute inset-0 bg-gradient-to-b from-navy/80 via-navy/55 to-navy/85"></div>
+        <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 lg:min-h-screen lg:flex-row lg:items-center lg:gap-10 lg:px-8 lg:py-10">
+            <figure class="min-w-0 flex-1">
+                <img
+                    src="{{ asset('images/kelas.jpg') }}"
+                    alt="Foto kelas {{ config('kelas.name') }}"
+                    class="mx-auto max-h-[46vh] w-full rounded-2xl object-contain object-center shadow-lg sm:max-h-[52vh] lg:max-h-[82vh]"
+                >
+                <figcaption class="mt-4 hidden text-white lg:block">
+                    <p class="text-xs font-medium tracking-[0.18em] text-white/70 uppercase">Universitas Pamulang</p>
+                    <h1 class="mt-2 text-3xl font-semibold tracking-tight">{{ config('kelas.name') }}</h1>
+                </figcaption>
+            </figure>
 
-            <div class="relative grid w-full max-w-5xl items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-                <div class="hidden text-white lg:block">
-                    <p class="text-xs font-medium tracking-[0.18em] uppercase text-white/70">Universitas Pamulang</p>
-                    <h1 class="mt-3 max-w-md text-4xl font-semibold tracking-tight">{{ config('kelas.name') }}</h1>
-                    <p class="mt-4 max-w-sm text-sm leading-6 text-white/80">
-                        Papan kelas Sistem Informasi. Info dua arah, tanpa chat yang menimbun pengumuman.
-                    </p>
-                </div>
-
-                <div class="mx-auto w-full max-w-md">
-                    @yield('content')
-                </div>
+            <div class="mx-auto w-full max-w-md shrink-0">
+                @yield('content')
             </div>
         </div>
     </body>

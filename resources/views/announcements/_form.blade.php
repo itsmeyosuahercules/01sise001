@@ -17,7 +17,14 @@
 </div>
 <div>
     <label class="block text-sm font-medium">Isi</label>
-    <textarea name="body" rows="8" required class="mt-1.5 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm outline-none focus:border-navy">{{ old('body', $announcement?->body) }}</textarea>
+    <div class="mt-1.5 flex flex-wrap gap-1.5" data-format-bar>
+        <button type="button" data-format="bold" class="min-h-11 rounded-lg border border-line bg-paper px-3 text-sm font-semibold">Tebal</button>
+        <button type="button" data-format="italic" class="min-h-11 rounded-lg border border-line bg-paper px-3 text-sm italic">Miring</button>
+        <button type="button" data-format="link" class="min-h-11 rounded-lg border border-line bg-paper px-3 text-sm">Tautan</button>
+        <button type="button" data-format="list" class="min-h-11 rounded-lg border border-line bg-paper px-3 text-sm">Daftar</button>
+    </div>
+    <textarea name="body" rows="10" required data-format-input class="mt-2 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-base leading-relaxed outline-none focus:border-navy sm:text-sm">{{ old('body', $announcement?->body) }}</textarea>
+    <p class="mt-1 text-xs text-ink/50">Pilih kata, lalu ketuk Tebal atau Miring. Untuk tautan, pilih kata lalu ketuk Tautan. Tulisan biasa tetap tampil seperti biasa.</p>
     @error('body') <p class="mt-1 text-sm text-accent-hot">{{ $message }}</p> @enderror
 </div>
 <div>

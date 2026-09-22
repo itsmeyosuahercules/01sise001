@@ -73,7 +73,7 @@ class AnnouncementController extends Controller
         $announcement->markReadBy($request->user());
 
         $announcement->load([
-            'author:id,name,nim,bio,avatar_path,updated_at',
+            'author:id,name,nim,role,bio,avatar_path,updated_at',
             'attachments',
             'reads.user:id,name,nim',
             'likes' => fn ($query) => $query->with('user:id,name,nim,bio,avatar_path,updated_at')->latest('id'),

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AnnouncementCategory;
+use App\Support\FormattedText;
 use Database\Factories\AnnouncementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 #[Fillable(['user_id', 'title', 'body', 'category', 'is_pinned', 'published_at', 'expires_at'])]
@@ -147,6 +149,11 @@ class Announcement extends Model
         return $this->likes()->whereBelongsTo($user)->exists();
     }
 
+    public function formattedBody(): HtmlString
+    {
+        return new HtmlString(FormattedText::html($this->body));
+    }
+
     public function whatsappText(): string
     {
         $publishedAt = $this->published_at ?? $this->created_at;
@@ -166,10 +173,10 @@ class Announcement extends Model
             '['.config('kelas.name').' · '.$this->category->label().']',
             '*'.$this->title.'*',
             '',
-            $this->body,
+            FormattedText::toWhatsapp($this->body),
             $attachmentLine,
             '',
-            '— '.($this->author?->name ?? 'KM').' · '.$date,
+            '— '.($this->author?->name ?? 'Ketua').' · '.$date,
         ], fn (?string $line): bool => $line !== null));
     }
 }
