@@ -6,7 +6,7 @@
     <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight">Izin & sakit</h1>
-            <p class="mt-1 text-sm text-ink/60">Anggota mengajukan. KM yang setujui atau tolak, lalu merekap ke dosen.</p>
+            <p class="mt-1 text-sm text-ink/60">Anggota mengajukan. Ketua yang menyetujui atau menolak.</p>
         </div>
         <div class="flex gap-2">
             <x-btn tag="a" href="{{ route('absence-requests.create') }}">Ajukan izin</x-btn>
@@ -22,7 +22,7 @@
                 type="search"
                 data-filter-q
                 placeholder="Cari nama, NIM, atau alasan…"
-                class="min-w-[16rem] flex-1 rounded-xl border border-line bg-card px-3 py-2 text-sm outline-none focus:border-navy"
+                class="w-full min-w-0 flex-1 rounded-xl border border-line bg-card px-3 py-2.5 text-base outline-none focus:border-navy sm:text-sm"
             >
             <select data-filter-key="type" class="rounded-xl border border-line bg-card px-3 py-2 text-sm">
                 <option value="">Semua jenis</option>

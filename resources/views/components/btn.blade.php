@@ -10,6 +10,6 @@
     };
 @endphp
 
-<{{ $tag }} {{ $attributes->merge(['class' => 'inline-flex cursor-pointer items-center justify-center rounded-xl px-3.5 py-2 text-sm font-medium transition '.$classes]) }}>
+<{{ $tag }} {{ $attributes->merge(['class' => 'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl px-3.5 py-2 text-sm font-medium transition '.$classes]) }}>
     {{ $slot }}
 </{{ $tag }}>

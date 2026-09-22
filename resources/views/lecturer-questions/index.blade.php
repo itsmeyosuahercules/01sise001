@@ -6,7 +6,7 @@
     <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight">Pertanyaan ke dosen</h1>
-            <p class="mt-1 text-sm text-ink/60">KM kurasi jadi satu paket. Bukan forum Mentari.</p>
+            <p class="mt-1 text-sm text-ink/60">Ketua mengumpulkan pertanyaan, lalu mengirimkannya ke dosen.</p>
         </div>
         <x-btn tag="a" href="{{ route('lecturer-questions.create') }}">Tulis pertanyaan</x-btn>
     </div>
@@ -34,7 +34,7 @@
                 type="search"
                 data-filter-q
                 placeholder="Cari topik, nama, atau isi…"
-                class="min-w-[16rem] flex-1 rounded-xl border border-line bg-card px-3 py-2 text-sm outline-none focus:border-navy"
+                class="w-full min-w-0 flex-1 rounded-xl border border-line bg-card px-3 py-2.5 text-base outline-none focus:border-navy sm:text-sm"
             >
             <select data-filter-key="kind" class="rounded-xl border border-line bg-card px-3 py-2 text-sm">
                 <option value="">Semua jenis</option>
@@ -50,7 +50,35 @@
             </select>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border border-line bg-card">
+        <div class="space-y-3 md:hidden">
+            @forelse ($questions as $question)
+                <article
+                    data-filter-row
+                    data-search="{{ $question->author?->name }} {{ $question->author?->nim }} {{ $question->topic }} {{ \Illuminate\Support\Str::limit($question->body, 120, '') }}"
+                    data-kind="{{ $question->kind->value }}"
+                    data-status="{{ $question->status->value }}"
+                    class="rounded-2xl border border-line bg-card p-4"
+                >
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="font-medium">{{ $question->topic }}</p>
+                            <p class="text-xs text-ink/50">{{ $question->kind->label() }} · {{ $question->author?->name }}</p>
+                        </div>
+                        <div class="shrink-0 text-sm text-navy" data-status-cell>
+                            @include('lecturer-questions._status')
+                        </div>
+                    </div>
+                    <p class="mt-3 text-sm whitespace-pre-wrap">{{ $question->body }}</p>
+                    @if ($question->hide_name)
+                        <p class="mt-2 text-xs text-ink/45">Nama tidak disebut ke dosen</p>
+                    @endif
+                </article>
+            @empty
+                <p class="text-sm text-ink/50">Belum ada pertanyaan.</p>
+            @endforelse
+        </div>
+
+        <div class="mt-4 hidden overflow-x-auto rounded-2xl border border-line bg-card md:block">
             <table class="w-full min-w-[760px] text-left text-sm">
                 <thead class="border-b border-line text-xs tracking-wide text-ink/45 uppercase">
                     <tr>
@@ -73,7 +101,7 @@
                                 {{ $question->author?->name }}
                                 <div class="font-mono text-xs text-ink/45">{{ $question->author?->nim }}</div>
                                 @if ($question->hide_name)
-                                    <div class="mt-1 text-xs text-ink/45">Nama disembunyikan di paket</div>
+                                    <div class="mt-1 text-xs text-ink/45">Nama tidak disebut ke dosen</div>
                                 @endif
                             </td>
                             <td class="px-4 py-3">
@@ -90,11 +118,9 @@
                             <td colspan="4" class="px-4 py-8 text-ink/50">Belum ada pertanyaan.</td>
                         </tr>
                     @endforelse
-                    <tr data-filter-empty class="hidden">
-                        <td colspan="4" class="px-4 py-8 text-ink/50">Tidak ada pertanyaan yang cocok.</td>
-                    </tr>
                 </tbody>
             </table>
         </div>
+        <p data-filter-empty class="hidden px-1 py-6 text-sm text-ink/50">Tidak ada pertanyaan yang cocok.</p>
     </div>
 @endsection

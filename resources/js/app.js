@@ -176,12 +176,23 @@ const applyAttendanceMark = (form, payload) => {
         const tag = document.createElement('span');
         tag.dataset.attendanceManualTag = '';
         tag.className = 'ml-1 rounded-full bg-navy/10 px-2 py-0.5 text-[10px] text-navy';
-        tag.textContent = 'dicatat KM';
+        tag.textContent = 'diisi ketua';
         statusCell.appendChild(tag);
     }
 
     if (timeCell) {
         timeCell.textContent = payload.time || '—';
+    }
+
+    const note = row.querySelector('[name="note"]');
+
+    if (note) {
+        note.disabled = ! payload.present;
+        note.placeholder = payload.present ? 'Catatan untuk ketua' : 'Tandai hadir dulu';
+
+        if (typeof payload.note === 'string') {
+            note.value = payload.note;
+        }
     }
 
     if (! payload.present) {
@@ -195,6 +206,14 @@ const applyAttendanceMark = (form, payload) => {
         if (locationCell) {
             locationCell.textContent = '—';
         }
+    }
+};
+
+const applyAttendanceNote = (form, payload) => {
+    const input = form.querySelector('[name="note"]');
+
+    if (input && typeof payload.note === 'string') {
+        input.value = payload.note;
     }
 };
 
@@ -246,6 +265,7 @@ const remotes = {
     review: applyReview,
     role: applyRole,
     'attendance-mark': applyAttendanceMark,
+    'attendance-note': applyAttendanceNote,
     'question-status': applyQuestionStatus,
     'question-package': applyQuestionPackage,
 };
@@ -346,6 +366,24 @@ const applyFilters = (root) => {
     }
 };
 
+document.querySelectorAll('[data-attendance-select-all]').forEach((toggle) => {
+    toggle.addEventListener('change', (event) => {
+        const checked = event.target instanceof HTMLInputElement && event.target.checked;
+
+        document.querySelectorAll('[data-attendance-pick]').forEach((box) => {
+            if (box instanceof HTMLInputElement) {
+                box.checked = checked;
+            }
+        });
+
+        document.querySelectorAll('[data-attendance-select-all]').forEach((other) => {
+            if (other instanceof HTMLInputElement) {
+                other.checked = checked;
+            }
+        });
+    });
+});
+
 document.querySelectorAll('[data-filter-root]').forEach((root) => {
     root.addEventListener('input', () => applyFilters(root));
     root.addEventListener('change', () => applyFilters(root));
@@ -416,21 +454,21 @@ if (attendanceForm) {
         }
 
         if (error?.code === 1) {
-            geoStatus.textContent = 'Lokasi ditolak. Ketuk ikon di bilah alamat, setel Lokasi ke Izinkan, lalu ketuk Ambil lokasi. Di iPhone lakukan ini di Safari.';
+            geoStatus.textContent = 'Lokasi ditolak. Izinkan lokasi di pengaturan browser, lalu ketuk Ambil lokasi.';
             return;
         }
 
         if (error?.code === 3) {
-            geoStatus.textContent = 'GPS masih mencari. Tunggu sebentar atau ketuk Ambil lokasi lagi. Pastikan Layanan Lokasi menyala.';
+            geoStatus.textContent = 'Lokasi masih dicari. Tunggu sebentar, atau ketuk Ambil lokasi lagi.';
             return;
         }
 
-        geoStatus.textContent = 'Lokasi belum didapat. Nyalakan GPS, lalu ketuk Ambil lokasi.';
+        geoStatus.textContent = 'Lokasi belum masuk. Nyalakan lokasi di HP, lalu ketuk Ambil lokasi.';
     };
 
     const requestLocation = () => {
         if (! navigator.geolocation) {
-            geoStatus.textContent = 'Browser ini tidak mendukung lokasi. Buka di Chrome atau Safari.';
+            geoStatus.textContent = 'Browser ini tidak bisa membaca lokasi. Buka lewat browser HP.';
             return;
         }
 
@@ -539,7 +577,7 @@ if (attendanceForm) {
 
     const startCamera = async () => {
         if (! navigator.mediaDevices?.getUserMedia) {
-            showNativeFallback('Kamera langsung tidak tersedia. Pakai tombol "Ambil lewat kamera HP", atau buka di Chrome/Safari.');
+            showNativeFallback('Kamera langsung tidak tersedia. Pakai tombol "Ambil lewat kamera HP".');
             return;
         }
 
@@ -556,7 +594,7 @@ if (attendanceForm) {
             video.srcObject = stream;
             video.muted = true;
             await video.play().catch(() => {});
-            camStatus.textContent = 'Kamera siap. Arahkan muka, lalu tekan Jepret. Di iPhone, kalau layar hitam, pakai Ambil lewat kamera HP.';
+            camStatus.textContent = 'Kamera siap. Arahkan wajah, lalu tekan Jepret. Kalau layar hitam, pakai Ambil lewat kamera HP.';
         } catch {
             showNativeFallback('Kamera ditolak atau diblokir. Izinkan kamera, atau pakai "Ambil lewat kamera HP". Jangan buka dari dalam WhatsApp.');
         }

@@ -4,7 +4,7 @@
 
 @section('content')
     <h1 class="text-2xl font-semibold tracking-tight">Hari ini</h1>
-    <p class="mt-1 text-sm text-ink/60">Koordinasi kelas. Jadwal, nilai, dan tugas dosen tetap di UNPAM / Mentari.</p>
+    <p class="mt-1 text-sm text-ink/60">Urusan kelas. Jadwal, nilai, dan tugas dosen tetap di situs kampus.</p>
 
     <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div class="rounded-2xl border border-line bg-card p-5">
@@ -31,8 +31,8 @@
 
     @if ($memberCount === 0)
         <div class="mt-6 rounded-2xl border border-gold/40 bg-card p-5 text-sm">
-            <p class="font-medium">Roster masih kosong.</p>
-            <p class="mt-1 text-ink/65">Impor CSV <code>nim,nama</code>. NIM yang sudah ada dilewati.</p>
+            <p class="font-medium">Daftar anggota masih kosong.</p>
+            <p class="mt-1 text-ink/65">Masukkan NIM dan nama. Yang sudah ada tidak ditimpa.</p>
             @can('import', App\Models\User::class)
                 <x-btn tag="a" href="{{ route('mahasiswa-imports.create') }}" class="mt-4">Impor mahasiswa</x-btn>
             @endcan
@@ -41,7 +41,7 @@
 
     <section class="mt-10">
         <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold">Pengumuman</h2>
+            <h2 class="text-lg font-semibold">Info kelas</h2>
             <a href="{{ route('announcements.index') }}" class="text-sm text-navy hover:underline">Lihat semua</a>
         </div>
         <div class="mt-3 space-y-3">

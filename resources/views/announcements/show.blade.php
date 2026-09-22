@@ -59,7 +59,7 @@
             @endif
             @if ($files->isNotEmpty())
                 <div class="rounded-2xl border border-line bg-card p-5">
-                    <h2 class="text-sm font-semibold">File lampiran</h2>
+                    <h2 class="text-sm font-semibold">File</h2>
                     <ul class="mt-2 space-y-2 text-sm">
                         @foreach ($files as $attachment)
                             <li>

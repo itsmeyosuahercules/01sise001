@@ -6,12 +6,12 @@
     <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight">Profil saya</h1>
-            <p class="mt-1 text-sm text-ink/60">Foto, nama, dan bio tampil di komentar dan daftar suka.</p>
+            <p class="mt-1 text-sm text-ink/60">Foto dan nama tampil saat kamu komentar atau menyukai info.</p>
         </div>
-        <x-btn tag="a" variant="secondary" href="{{ route('profiles.show', $user) }}">Lihat seperti anggota lain</x-btn>
+        <x-btn tag="a" variant="secondary" href="{{ route('profiles.show', $user) }}">Lihat profil</x-btn>
     </div>
 
-    <form method="POST" action="{{ route('profiles.update') }}" enctype="multipart/form-data" class="mt-6 max-w-xl space-y-4 rounded-2xl border border-line bg-card p-6">
+    <form method="POST" action="{{ route('profiles.update') }}" enctype="multipart/form-data" class="mt-6 max-w-xl space-y-4 rounded-2xl border border-line bg-card p-4 sm:p-6">
         @csrf
         @method('PATCH')
 
@@ -46,16 +46,16 @@
         <div>
             <label class="block text-sm font-medium">Nama</label>
             <input type="text" name="name" value="{{ old('name', $user->name) }}" required maxlength="255" class="mt-1.5 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm outline-none focus:border-navy">
-            <p class="mt-1 text-xs text-ink/50">NIM tidak bisa diubah. Impor roster tidak menimpa nama yang sudah ada.</p>
+            <p class="mt-1 text-xs text-ink/50">NIM tidak bisa diubah. Nama yang sudah diisi tidak tertimpa saat daftar anggota dimasukkan.</p>
             @error('name')
                 <p class="mt-1 text-sm text-accent-hot">{{ $message }}</p>
             @enderror
         </div>
 
         <div>
-            <label class="block text-sm font-medium">Bio <span class="font-normal text-ink/45">(opsional)</span></label>
+            <label class="block text-sm font-medium">Keterangan singkat <span class="font-normal text-ink/45">(boleh dikosongkan)</span></label>
             <textarea name="bio" rows="3" maxlength="280" class="mt-1.5 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm outline-none focus:border-navy">{{ old('bio', $user->bio) }}</textarea>
-            <p class="mt-1 text-xs text-ink/50">Maksimal 280 karakter. Satu baris singkat, misalnya peran di kelompok atau kontak WA.</p>
+            <p class="mt-1 text-xs text-ink/50">Satu baris, misalnya peran di kelompok atau nomor WhatsApp.</p>
             @error('bio')
                 <p class="mt-1 text-sm text-accent-hot">{{ $message }}</p>
             @enderror
@@ -64,7 +64,7 @@
         <x-btn type="submit">Simpan profil</x-btn>
     </form>
 
-    <form method="POST" action="{{ route('profiles.password') }}" class="mt-6 max-w-xl space-y-4 rounded-2xl border border-line bg-card p-6">
+    <form method="POST" action="{{ route('profiles.password') }}" class="mt-6 max-w-xl space-y-4 rounded-2xl border border-line bg-card p-4 sm:p-6">
         @csrf
         @method('PATCH')
         <div>

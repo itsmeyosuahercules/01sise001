@@ -6,7 +6,7 @@
     <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight">Template pesan</h1>
-            <p class="mt-1 text-sm text-ink/60">Variabel: <code>@{{nama}}</code>, <code>@{{nim}}</code>, <code>@{{kelas}}</code>.</p>
+            <p class="mt-1 text-sm text-ink/60">Tulis <code>@{{nama}}</code>, <code>@{{nim}}</code>, atau <code>@{{kelas}}</code>. Nanti terganti sendiri.</p>
         </div>
         @can('create', App\Models\MessageTemplate::class)
             <x-btn tag="a" href="{{ route('message-templates.create') }}">Template baru</x-btn>

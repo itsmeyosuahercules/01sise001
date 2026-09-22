@@ -3,7 +3,8 @@
 @section('title', 'Template baru')
 
 @section('content')
-    <h1 class="text-2xl font-semibold tracking-tight">Template baru</h1>
+    <h1 class="text-2xl font-semibold tracking-tight">Pesan baru</h1>
+    <p class="mt-1 text-sm text-ink/60">Tulis @{{nama}}, @{{nim}}, atau @{{kelas}}. Nanti terganti sendiri.</p>
 
     <form method="POST" action="{{ route('message-templates.store') }}" class="mt-6 max-w-xl space-y-4 rounded-2xl border border-line bg-card p-6">
         @csrf

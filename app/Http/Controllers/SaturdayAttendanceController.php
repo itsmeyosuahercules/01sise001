@@ -6,6 +6,7 @@ use App\Actions\StoreSaturdayAttendance;
 use App\Http\Requests\StoreSaturdayAttendanceRequest;
 use App\Models\SaturdayAttendance;
 use App\Models\User;
+use App\Support\AttendanceLocationReview;
 use App\Support\SaturdayAttendanceWindow;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -38,6 +39,7 @@ class SaturdayAttendanceController extends Controller
         $members = collect();
         $presentCount = 0;
         $whatsappSummary = null;
+        $whatsappAbsent = null;
 
         if ($user->role->canReviewAttendances()) {
             $attendances = SaturdayAttendance::query()
@@ -50,14 +52,20 @@ class SaturdayAttendanceController extends Controller
                 ->orderBy('id')
                 ->get(['id', 'nim', 'name'])
                 ->map(function (User $member) use ($attendances): array {
+                    $attendance = $attendances->get($member->id);
+
                     return [
                         'user' => $member,
-                        'attendance' => $attendances->get($member->id),
+                        'attendance' => $attendance,
+                        'warnings' => $attendance instanceof SaturdayAttendance
+                            ? AttendanceLocationReview::warnings($attendance, $attendances)
+                            : [],
                     ];
                 });
 
             $presentCount = $attendances->count();
             $whatsappSummary = $this->whatsappSummary($date, $members, $presentCount);
+            $whatsappAbsent = $this->whatsappAbsent($date, $members);
         }
 
         return view('attendances.index', [
@@ -70,6 +78,7 @@ class SaturdayAttendanceController extends Controller
             'members' => $members,
             'presentCount' => $presentCount,
             'whatsappSummary' => $whatsappSummary,
+            'whatsappAbsent' => $whatsappAbsent,
             'saturdays' => SaturdayAttendanceWindow::recentSaturdays(),
         ]);
     }
@@ -91,25 +100,8 @@ class SaturdayAttendanceController extends Controller
         }
 
         $member = User::query()->findOrFail($validated['user_id']);
-        $existing = SaturdayAttendance::query()
-            ->whereBelongsTo($member)
-            ->whereDate('attended_on', $date->toDateString())
-            ->first();
         $present = $request->boolean('present');
-
-        if ($present) {
-            if (! $existing instanceof SaturdayAttendance) {
-                $existing = SaturdayAttendance::query()->create([
-                    'user_id' => $member->id,
-                    'marked_by' => $request->user()->id,
-                    'attended_on' => $date->toDateString(),
-                    'note' => 'Ditandai hadir oleh '.$request->user()->name,
-                ]);
-            }
-        } elseif ($existing instanceof SaturdayAttendance) {
-            $existing->delete();
-            $existing = null;
-        }
+        $existing = $this->applyMark($member, $date, $present, $request->user());
 
         $message = 'Kehadiran '.$member->name.' diperbarui.';
 
@@ -117,6 +109,82 @@ class SaturdayAttendanceController extends Controller
             'present' => $present,
             'is_manual' => $existing?->isManual() ?? false,
             'time' => $existing?->captured_at?->timezone(config('app.timezone'))->format('H:i'),
+            'note' => $existing?->note ?? '',
+            'message' => $message,
+        ], redirect()
+            ->route('attendances.index', ['tanggal' => $date->toDateString()])
+            ->with('status', $message));
+    }
+
+    public function markBulk(Request $request): RedirectResponse
+    {
+        $this->authorize('manage', SaturdayAttendance::class);
+
+        $validated = $request->validate([
+            'user_ids' => ['required', 'array', 'min:1'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
+            'tanggal' => ['required', 'date'],
+            'present' => ['required', 'boolean'],
+        ], [
+            'user_ids.required' => 'Pilih minimal satu mahasiswa.',
+            'user_ids.min' => 'Pilih minimal satu mahasiswa.',
+        ]);
+
+        try {
+            $date = SaturdayAttendanceWindow::resolveDate($validated['tanggal']);
+        } catch (InvalidArgumentException $exception) {
+            return back()->withErrors(['tanggal' => $exception->getMessage()]);
+        }
+
+        $present = $request->boolean('present');
+        $members = User::query()->whereIn('id', $validated['user_ids'])->get();
+
+        foreach ($members as $member) {
+            $this->applyMark($member, $date, $present, $request->user());
+        }
+
+        $label = $present ? 'hadir' : 'tidak hadir';
+
+        return redirect()
+            ->route('attendances.index', ['tanggal' => $date->toDateString()])
+            ->with('status', $members->count().' mahasiswa ditandai '.$label.'.');
+    }
+
+    public function note(Request $request): JsonResponse|RedirectResponse
+    {
+        $this->authorize('manage', SaturdayAttendance::class);
+
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'tanggal' => ['required', 'date'],
+            'note' => ['nullable', 'string', 'max:280'],
+        ]);
+
+        try {
+            $date = SaturdayAttendanceWindow::resolveDate($validated['tanggal']);
+        } catch (InvalidArgumentException $exception) {
+            return back()->withErrors(['tanggal' => $exception->getMessage()]);
+        }
+
+        $member = User::query()->findOrFail($validated['user_id']);
+        $attendance = SaturdayAttendance::query()
+            ->whereBelongsTo($member)
+            ->whereDate('attended_on', $date->toDateString())
+            ->first();
+
+        if (! $attendance instanceof SaturdayAttendance) {
+            return back()->withErrors(['note' => 'Catatan hanya untuk yang sudah hadir.']);
+        }
+
+        $note = trim($validated['note'] ?? '');
+        $attendance->update([
+            'note' => $note === '' ? null : $note,
+        ]);
+
+        $message = 'Catatan '.$member->name.' disimpan.';
+
+        return $this->respond($request, [
+            'note' => $attendance->note ?? '',
             'message' => $message,
         ], redirect()
             ->route('attendances.index', ['tanggal' => $date->toDateString()])
@@ -199,7 +267,7 @@ class SaturdayAttendanceController extends Controller
         $absent = $members->filter(fn (array $row): bool => $row['attendance'] === null)->values();
 
         $lines = [
-            'Rekap Hadir Sabtu '.$date->translatedFormat('d M Y').' — '.config('kelas.name'),
+            'Daftar hadir Sabtu '.$date->translatedFormat('d M Y').' — '.config('kelas.name'),
             'Hadir '.$presentCount.'/'.$members->count(),
             '',
             'Hadir:',
@@ -225,8 +293,56 @@ class SaturdayAttendanceController extends Controller
         }
 
         $lines[] = '';
-        $lines[] = 'Rekap kelas untuk dosen, bukan presensi resmi UNPAM.';
+        $lines[] = 'Catatan kelas untuk dosen.';
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * @param  Collection<int, array{user: User, attendance: ?SaturdayAttendance}>  $members
+     */
+    private function whatsappAbsent(CarbonImmutable $date, Collection $members): string
+    {
+        $absent = $members->filter(fn (array $row): bool => $row['attendance'] === null)->values();
+        $lines = [
+            'Belum hadir Sabtu '.$date->translatedFormat('d M Y').' ('.$absent->count().' orang)',
+            'Buka lewat browser HP, jangan dari dalam WhatsApp. Ketuk Izinkan kamera & lokasi.',
+            '',
+        ];
+
+        foreach ($absent as $index => $row) {
+            $lines[] = ($index + 1).'. '.$row['user']->name;
+        }
+
+        if ($absent->isEmpty()) {
+            $lines[] = 'Semua sudah hadir.';
+        }
+
+        return implode("\n", $lines);
+    }
+
+    private function applyMark(User $member, CarbonImmutable $date, bool $present, User $officer): ?SaturdayAttendance
+    {
+        $existing = SaturdayAttendance::query()
+            ->whereBelongsTo($member)
+            ->whereDate('attended_on', $date->toDateString())
+            ->first();
+
+        if ($present) {
+            if ($existing instanceof SaturdayAttendance) {
+                return $existing;
+            }
+
+            return SaturdayAttendance::query()->create([
+                'user_id' => $member->id,
+                'marked_by' => $officer->id,
+                'attended_on' => $date->toDateString(),
+                'note' => 'Ditandai hadir oleh '.$officer->name,
+            ]);
+        }
+
+        $existing?->delete();
+
+        return null;
     }
 }

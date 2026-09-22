@@ -14,7 +14,7 @@ enum LecturerQuestionStatus: string
         return match ($this) {
             self::Baru => 'Baru',
             self::Dipilih => 'Masuk paket',
-            self::Ditahan => 'Ditahan',
+            self::Ditahan => 'Ditunda',
             self::Terkirim => 'Sudah dikirim',
         };
     }

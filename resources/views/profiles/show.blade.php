@@ -12,7 +12,7 @@
                 @if ($user->bio)
                     <p class="mt-3 max-w-xl text-sm leading-6 text-ink/75">{{ $user->bio }}</p>
                 @else
-                    <p class="mt-3 text-sm text-ink/45">Belum ada bio.</p>
+                    <p class="mt-3 text-sm text-ink/45">Belum ada keterangan.</p>
                 @endif
             </div>
         </div>
@@ -28,7 +28,7 @@
                 @method('PATCH')
                 <div>
                     <h2 class="text-lg font-semibold tracking-tight">Setel kata sandi</h2>
-                    <p class="mt-1 text-sm text-ink/60">Khusus KM. Anggota masuk dengan sandi baru ini. Minimal 8 karakter. Sandi awal kelas: <code>{{ config('kelas.default_password') }}</code>.</p>
+                    <p class="mt-1 text-sm text-ink/60">Khusus ketua. Teman kelas masuk dengan sandi baru ini. Minimal 8 karakter. Sandi awal: <code>{{ config('kelas.default_password') }}</code>.</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium">Sandi baru</label>

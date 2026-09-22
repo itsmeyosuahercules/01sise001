@@ -6,14 +6,14 @@
     <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight">Anggota kelas</h1>
-            <p class="mt-1 text-sm text-ink/60">{{ $members->count() }} orang · siap diekspor ke prodi.</p>
+            <p class="mt-1 text-sm text-ink/60">{{ $members->count() }} orang.</p>
         </div>
         <div class="flex flex-wrap gap-2">
             @can('import', App\Models\User::class)
                 <x-btn tag="a" variant="secondary" href="{{ route('mahasiswa-imports.create') }}">Impor NIM</x-btn>
             @endcan
             @can('export', App\Models\User::class)
-                <x-btn tag="a" href="{{ route('roster.export') }}">Unduh CSV</x-btn>
+                <x-btn tag="a" href="{{ route('roster.export') }}">Unduh daftar</x-btn>
             @endcan
         </div>
     </div>
@@ -24,7 +24,7 @@
                 type="search"
                 data-filter-q
                 placeholder="Cari nama atau NIM…"
-                class="min-w-[16rem] flex-1 rounded-xl border border-line bg-card px-3 py-2 text-sm outline-none focus:border-navy"
+                class="w-full min-w-0 flex-1 rounded-xl border border-line bg-card px-3 py-2.5 text-base outline-none focus:border-navy sm:text-sm"
             >
             <select data-filter-key="role" class="rounded-xl border border-line bg-card px-3 py-2 text-sm">
                 <option value="">Semua peran</option>
@@ -34,7 +34,51 @@
             </select>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border border-line bg-card">
+        <div class="space-y-3 md:hidden">
+            @foreach ($members as $member)
+                <article
+                    data-filter-row
+                    data-search="{{ $member->nim }} {{ $member->name }} {{ $member->bio }}"
+                    data-role="{{ $member->role->value }}"
+                    class="rounded-2xl border border-line bg-card p-4"
+                >
+                    <a href="{{ route('profiles.show', $member) }}" class="flex items-center gap-3">
+                        <x-avatar :user="$member" size="sm" />
+                        <span class="min-w-0">
+                            <span class="block font-medium">{{ $member->name }}</span>
+                            <span class="block font-mono text-xs text-ink/50">{{ $member->nim }}</span>
+                            @if ($member->bio)
+                                <span class="mt-0.5 block line-clamp-2 text-xs text-ink/55">{{ $member->bio }}</span>
+                            @endif
+                        </span>
+                    </a>
+                    <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+                        @can('updateRole', $member)
+                            <form method="POST" action="{{ route('roster.update', $member) }}" data-remote="role" class="min-w-0 flex-1">
+                                @csrf
+                                @method('PATCH')
+                                <select name="role" data-previous="{{ $member->role->value }}" class="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm" onchange="this.form.requestSubmit()">
+                                    @foreach ($roles as $role)
+                                        <option value="{{ $role->value }}" @selected($member->role === $role)>{{ $role->label() }}</option>
+                                    @endforeach
+                                </select>
+                            </form>
+                        @else
+                            <span class="text-sm text-ink/65">{{ $member->role->label() }}</span>
+                        @endcan
+                        @can('resetPassword', $member)
+                            @if (auth()->id() === $member->id)
+                                <a href="{{ route('profiles.edit') }}" class="text-sm text-navy hover:underline">Ganti sandi saya</a>
+                            @else
+                                <a href="{{ route('profiles.show', $member) }}#sandi" class="text-sm text-navy hover:underline">Setel sandi</a>
+                            @endif
+                        @endcan
+                    </div>
+                </article>
+            @endforeach
+        </div>
+
+        <div class="mt-4 hidden overflow-x-auto rounded-2xl border border-line bg-card md:block">
             <table class="w-full min-w-[640px] text-left text-sm">
                 <thead class="border-b border-line text-xs tracking-wide text-ink/45 uppercase">
                     <tr>
@@ -92,11 +136,9 @@
                             @endcan
                         </tr>
                     @endforeach
-                    <tr data-filter-empty class="hidden">
-                        <td colspan="{{ auth()->user()->can('resetPassword', auth()->user()) ? 4 : 3 }}" class="px-4 py-8 text-ink/50">Tidak ada anggota yang cocok.</td>
-                    </tr>
                 </tbody>
             </table>
         </div>
+        <p data-filter-empty class="hidden px-1 py-6 text-sm text-ink/50">Tidak ada anggota yang cocok.</p>
     </div>
 @endsection

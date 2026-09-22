@@ -98,7 +98,7 @@
             <a class="back" href="{{ route('attendances.index', ['tanggal' => $date->toDateString()]) }}">Kembali ke hadir</a>
             <button type="button" onclick="window.print()">Unduh / cetak PDF</button>
         </div>
-        <p class="hint" style="width: 210mm; max-width: 100%; margin: 10px auto 0;">Saat dialog cetak muncul, matikan opsi "Header dan footer", lalu pilih ukuran kertas A4 dan margin default agar hasil rapi.</p>
+        <p class="hint" style="width: 210mm; max-width: 100%; margin: 10px auto 0;">Saat jendela cetak muncul, matikan header dan footer, lalu pilih kertas A4.</p>
 
         <article class="sheet">
             <h1>Rekap Hadir Sabtu · {{ config('kelas.name') }}</h1>
@@ -107,7 +107,7 @@
                 · Dicetak {{ $generatedAt->timezone(config('app.timezone'))->translatedFormat('d M Y H:i') }}
                 · Oleh {{ $officer->name }} ({{ $officer->role->label() }})
             </p>
-            <p class="note">Rekap kehadiran kelas untuk dosen. Bukan presensi resmi UNPAM / SIAKAD.</p>
+            <p class="note">Catatan kelas untuk dosen. Bukan presensi resmi UNPAM.</p>
 
             <div class="stats">
                 <span><strong>{{ $presentCount }}</strong> hadir</span>
@@ -147,7 +147,7 @@
                             <td class="{{ $attendance ? 'hadir' : 'absen' }}">
                                 {{ $attendance ? 'Hadir' : 'Tidak hadir' }}
                                 @if ($attendance?->isManual())
-                                    <span class="tag">dicatat KM</span>
+                                    <span class="tag">diisi ketua</span>
                                 @endif
                             </td>
                             <td>{{ $attendance?->captured_at?->timezone(config('app.timezone'))->format('H:i') ?? '—' }}</td>

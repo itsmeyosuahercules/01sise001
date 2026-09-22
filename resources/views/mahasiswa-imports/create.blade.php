@@ -5,14 +5,14 @@
 @section('content')
     <h1 class="text-2xl font-semibold tracking-tight">Impor mahasiswa</h1>
     <p class="mt-1 max-w-xl text-sm text-ink/60">
-        Data dari grup boleh masuk bertahap. NIM yang sudah ada dilewati — nama, peran, dan kata sandi tidak diubah.
-        Format: <code>nim,nama</code>. Header opsional.
+        Boleh dimasukkan bertahap. NIM yang sudah ada dilewati. Nama, peran, dan kata sandi tidak berubah.
+        Satu baris: NIM, lalu nama.
     </p>
 
     <form method="POST" action="{{ route('mahasiswa-imports.store') }}" enctype="multipart/form-data" class="mt-6 max-w-xl space-y-4 rounded-2xl border border-line bg-card p-6">
         @csrf
         <div>
-            <label class="block text-sm font-medium">Unggah CSV</label>
+            <label class="block text-sm font-medium">Unggah berkas</label>
             <input type="file" name="csv" accept=".csv,text/csv,text/plain" class="mt-1.5 w-full text-sm">
             @error('csv')
                 <p class="mt-1 text-sm text-accent-hot">{{ $message }}</p>

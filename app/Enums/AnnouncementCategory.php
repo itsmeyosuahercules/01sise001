@@ -20,7 +20,7 @@ enum AnnouncementCategory: string
             self::Ujian => 'Ujian',
             self::Ruangan => 'Ruangan',
             self::Seminar => 'Seminar',
-            self::Prodi => 'Prodi',
+            self::Prodi => 'Program studi',
             self::Umum => 'Umum',
         };
     }

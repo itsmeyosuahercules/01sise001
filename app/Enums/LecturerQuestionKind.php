@@ -13,7 +13,7 @@ enum LecturerQuestionKind: string
         return match ($this) {
             self::Pertanyaan => 'Pertanyaan',
             self::Keluhan => 'Keluhan',
-            self::Klarifikasi => 'Klarifikasi',
+            self::Klarifikasi => 'Minta penjelasan',
         };
     }
 }

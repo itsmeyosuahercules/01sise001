@@ -11,7 +11,7 @@ enum UserRole: string
     public function label(): string
     {
         return match ($this) {
-            self::Km => 'KM',
+            self::Km => 'Ketua',
             self::Wakil => 'Wakil',
             self::Anggota => 'Anggota',
         };

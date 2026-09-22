@@ -15,6 +15,8 @@ class AuthenticationTest extends TestCase
         $response = $this->get(route('login'));
 
         $response->assertOk()
+            ->assertSee('images/kelas.jpg')
+            ->assertSee('Masuk ke kelas')
             ->assertDontSee('9900000001')
             ->assertDontSee('Akun uji');
     }

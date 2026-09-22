@@ -87,6 +87,48 @@ class AnnouncementAttachmentTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_the_edit_page_keeps_attachment_removal_outside_the_announcement_form(): void
+    {
+        $km = User::factory()->km()->create();
+        $announcement = Announcement::factory()->create([
+            'title' => 'Jadwal pengganti',
+            'body' => 'Bawa laptop.',
+        ]);
+        $attachment = AnnouncementAttachment::factory()->create([
+            'announcement_id' => $announcement->id,
+            'original_name' => 'jadwal-pengganti.pdf',
+        ]);
+
+        $html = $this->actingAs($km)
+            ->get(route('announcements.edit', $announcement))
+            ->assertOk()
+            ->assertSee('Jadwal pengganti')
+            ->assertSee('jadwal-pengganti.pdf')
+            ->assertSee('Simpan')
+            ->getContent();
+
+        $updateAt = strpos($html, route('announcements.update', $announcement));
+        $updateClosedAt = strpos($html, '</form>', $updateAt);
+        $deleteAt = strpos($html, route('announcements.attachments.destroy', [$announcement, $attachment]));
+
+        $this->assertNotFalse($updateAt);
+        $this->assertNotFalse($updateClosedAt);
+        $this->assertNotFalse($deleteAt);
+        $this->assertLessThan($deleteAt, $updateClosedAt);
+
+        $this->actingAs($km)
+            ->put(route('announcements.update', $announcement), [
+                'title' => 'Jadwal pengganti ruang B',
+                'body' => 'Bawa laptop.',
+                'category' => $announcement->category->value,
+            ])
+            ->assertRedirect();
+
+        $this->assertNotNull($announcement->fresh());
+        $this->assertSame('Jadwal pengganti ruang B', $announcement->fresh()->title);
+        $this->assertDatabaseHas('announcement_attachments', ['id' => $attachment->id]);
+    }
+
     public function test_the_class_rep_can_remove_an_attachment(): void
     {
         Storage::fake('local');

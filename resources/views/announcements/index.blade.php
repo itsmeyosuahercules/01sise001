@@ -6,7 +6,7 @@
     <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight">Pengumuman</h1>
-            <p class="mt-1 text-sm text-ink/60">Info dari KM, bukan Mentari. Buka detail = sudah dibaca.</p>
+            <p class="mt-1 text-sm text-ink/60">Info dari ketua kelas. Buka untuk menandai sudah dibaca.</p>
         </div>
         @can('create', App\Models\Announcement::class)
             <x-btn tag="a" href="{{ route('announcements.create') }}">Tulis pengumuman</x-btn>
@@ -19,7 +19,7 @@
                 type="search"
                 data-filter-q
                 placeholder="Cari judul atau isi…"
-                class="min-w-[16rem] flex-1 rounded-xl border border-line bg-card px-3 py-2 text-sm outline-none focus:border-navy"
+                class="w-full min-w-0 flex-1 rounded-xl border border-line bg-card px-3 py-2.5 text-base outline-none focus:border-navy sm:text-sm"
             >
             <select data-filter-key="category" class="rounded-xl border border-line bg-card px-3 py-2 text-sm">
                 <option value="">Semua kategori</option>

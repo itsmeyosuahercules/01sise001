@@ -322,6 +322,106 @@ class SaturdayAttendanceTest extends TestCase
             ->assertOk();
     }
 
+    public function test_officers_can_bulk_mark_members_and_copy_who_is_still_absent(): void
+    {
+        $km = User::factory()->km()->create();
+        $first = User::factory()->anggota()->create(['name' => 'Aida Kamila']);
+        $second = User::factory()->anggota()->create(['name' => 'Nur Via Rela']);
+
+        $this->actingAs($km)
+            ->post(route('attendances.mark-bulk'), [
+                'user_ids' => [$first->id, $second->id],
+                'tanggal' => '2026-08-29',
+                'present' => '1',
+            ])
+            ->assertRedirect(route('attendances.index', ['tanggal' => '2026-08-29']));
+
+        $this->assertSame(2, SaturdayAttendance::query()->count());
+
+        $this->actingAs($km)
+            ->get(route('attendances.index'))
+            ->assertOk()
+            ->assertSee('Belum hadir Sabtu')
+            ->assertSee('Aida Kamila');
+    }
+
+    public function test_members_cannot_bulk_mark_attendance(): void
+    {
+        $member = User::factory()->anggota()->create();
+        $other = User::factory()->anggota()->create();
+
+        $this->actingAs($member)
+            ->post(route('attendances.mark-bulk'), [
+                'user_ids' => [$other->id],
+                'tanggal' => '2026-09-05',
+                'present' => '1',
+            ])
+            ->assertForbidden();
+
+        $this->assertSame(0, SaturdayAttendance::query()->count());
+    }
+
+    public function test_officer_notes_stay_off_the_lecturer_report(): void
+    {
+        $km = User::factory()->km()->create();
+        $member = User::factory()->anggota()->create();
+        SaturdayAttendance::factory()->create(['user_id' => $member->id]);
+
+        $this->actingAs($km)
+            ->post(route('attendances.note'), [
+                'user_id' => $member->id,
+                'tanggal' => '2026-09-05',
+                'note' => 'HP rusak, sudah konfirmasi di grup',
+            ])
+            ->assertRedirect(route('attendances.index', ['tanggal' => '2026-09-05']));
+
+        $this->assertSame('HP rusak, sudah konfirmasi di grup', SaturdayAttendance::query()->first()?->note);
+
+        $this->actingAs($km)
+            ->get(route('attendances.report', ['tanggal' => '2026-09-05']))
+            ->assertOk()
+            ->assertDontSee('HP rusak, sudah konfirmasi di grup');
+    }
+
+    public function test_the_recap_flags_suspicious_locations_without_printing_them(): void
+    {
+        config([
+            'kelas.attendance.campus_latitude' => -6.3428,
+            'kelas.attendance.campus_longitude' => 106.7335,
+            'kelas.attendance.campus_radius_meters' => 800,
+        ]);
+
+        $km = User::factory()->km()->create();
+        $first = User::factory()->anggota()->create();
+        $second = User::factory()->anggota()->create();
+
+        SaturdayAttendance::factory()->create([
+            'user_id' => $first->id,
+            'latitude' => -6.2000000,
+            'longitude' => 106.8000000,
+            'accuracy' => 0,
+        ]);
+        SaturdayAttendance::factory()->create([
+            'user_id' => $second->id,
+            'latitude' => -6.2000000,
+            'longitude' => 106.8000000,
+            'accuracy' => 12,
+        ]);
+
+        $this->actingAs($km)
+            ->get(route('attendances.index'))
+            ->assertOk()
+            ->assertSee('Jauh dari kampus')
+            ->assertSee('Lokasi terlihat tidak asli')
+            ->assertSee('Lokasi sama dengan teman sekelas');
+
+        $this->actingAs($km)
+            ->get(route('attendances.report'))
+            ->assertOk()
+            ->assertDontSee('Fake GPS')
+            ->assertDontSee('Jauh dari kampus');
+    }
+
     public function test_the_dashboard_shows_saturday_attendance_instead_of_izin(): void
     {
         $member = User::factory()->anggota()->create();
