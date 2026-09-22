@@ -16,7 +16,7 @@
         <div class="pointer-events-none absolute inset-0 bg-linear-to-br from-navy/30 via-navy/55 to-navy/80"></div>
 
         <div class="relative mx-auto grid min-h-dvh w-full max-w-7xl items-center gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1.35fr)_24rem] lg:gap-10 lg:px-10">
-            <div class="flex justify-center">
+            <div class="flex animate-fade-up justify-center">
                 <img
                     src="{{ asset('images/kelas.jpg') }}"
                     alt="Foto kelas {{ config('kelas.name') }}"
@@ -26,7 +26,7 @@
                 >
             </div>
 
-            <div class="mx-auto w-full max-w-md">
+            <div class="mx-auto w-full max-w-md animate-fade-up" style="animation-delay: 0.08s">
                 @yield('content')
             </div>
         </div>

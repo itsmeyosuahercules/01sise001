@@ -7,11 +7,11 @@
     <p class="mt-1 text-sm text-ink/60">Urusan kelas. Jadwal, nilai, dan tugas dosen tetap di situs kampus.</p>
 
     <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-2xl border border-line bg-card p-5">
+        <div class="card-lift rounded-2xl border border-line bg-card p-5">
             <p class="text-xs tracking-wide text-ink/45 uppercase">Belum dibaca</p>
             <p class="mt-2 text-3xl font-semibold text-navy">{{ $unreadCount }}</p>
         </div>
-        <a href="{{ route('attendances.index') }}" class="rounded-2xl border border-line bg-card p-5 transition hover:border-navy/25">
+        <a href="{{ route('attendances.index') }}" class="card-lift rounded-2xl border border-line bg-card p-5">
             <p class="text-xs tracking-wide text-ink/45 uppercase">Hadir Sabtu</p>
             @can('export', App\Models\SaturdayAttendance::class)
                 <p class="mt-2 text-3xl font-semibold text-navy">{{ $saturdayPresent }}/{{ $memberCount }}</p>
@@ -19,11 +19,11 @@
                 <p class="mt-2 text-3xl font-semibold text-navy">{{ $saturdayMine ? 'Hadir' : 'Belum' }}</p>
             @endcan
         </a>
-        <a href="{{ route('lecturer-questions.index') }}" class="rounded-2xl border border-line bg-card p-5 transition hover:border-navy/25">
+        <a href="{{ route('lecturer-questions.index') }}" class="card-lift rounded-2xl border border-line bg-card p-5">
             <p class="text-xs tracking-wide text-ink/45 uppercase">Pertanyaan baru</p>
             <p class="mt-2 text-3xl font-semibold text-navy">{{ $pendingQuestions }}</p>
         </a>
-        <div class="rounded-2xl border border-line bg-card p-5">
+        <div class="card-lift rounded-2xl border border-line bg-card p-5">
             <p class="text-xs tracking-wide text-ink/45 uppercase">Anggota</p>
             <p class="mt-2 text-3xl font-semibold text-navy">{{ $memberCount }}</p>
         </div>
@@ -46,7 +46,7 @@
         </div>
         <div class="mt-3 space-y-3">
             @forelse ($announcements as $announcement)
-                <a href="{{ route('announcements.show', $announcement) }}" class="block rounded-2xl border border-line bg-card p-5 transition hover:border-navy/25">
+                <a href="{{ route('announcements.show', $announcement) }}" class="card-lift block rounded-2xl border border-line bg-card p-5">
                     <div class="flex flex-wrap items-center gap-2 text-xs text-ink/50">
                         @if ($announcement->is_pinned)
                             <span class="rounded-full bg-gold/20 px-2 py-0.5 text-navy">Pin</span>

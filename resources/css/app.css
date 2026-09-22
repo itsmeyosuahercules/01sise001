@@ -49,6 +49,24 @@
             font-size: 16px;
         }
     }
+
+    a,
+    button,
+    [role='button'] {
+        transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input,
+    select,
+    textarea {
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    :focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--color-navy) 55%, transparent);
+        outline-offset: 2px;
+        border-radius: 0.5rem;
+    }
 }
 
 @layer components {
@@ -77,5 +95,52 @@
 
     .reading strong {
         font-weight: 600;
+    }
+
+    .card-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card-lift:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px -12px color-mix(in oklab, var(--color-navy) 25%, transparent);
+    }
+
+    @keyframes fade-up {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-up {
+        animation: fade-up 0.35s ease-out both;
+    }
+
+    @keyframes soft-pulse {
+        0%,
+        100% {
+            opacity: 0.55;
+        }
+        50% {
+            opacity: 1;
+        }
+    }
+
+    .animate-soft-pulse {
+        animation: soft-pulse 2.4s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .animate-fade-up,
+        .animate-soft-pulse,
+        .card-lift {
+            animation: none !important;
+            transition: none !important;
+        }
     }
 }

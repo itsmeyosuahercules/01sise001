@@ -42,7 +42,7 @@
                     data-search="{{ $announcement->title }} {{ \Illuminate\Support\Str::limit($announcement->body, 160, '') }}"
                     data-category="{{ $announcement->category->value }}"
                     data-read="{{ $announcement->isReadBy(auth()->user()) ? '1' : '0' }}"
-                    class="block rounded-2xl border border-line bg-card p-5 transition hover:border-navy/25"
+                    class="card-lift block rounded-2xl border border-line bg-card p-5"
                 >
                     <div class="flex flex-wrap items-center gap-2 text-xs text-ink/50">
                         @if ($announcement->is_pinned)
