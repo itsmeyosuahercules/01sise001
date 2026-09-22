@@ -13,7 +13,9 @@
                 <img
                     src="{{ asset('images/kelas.jpg') }}"
                     alt="Foto kelas {{ config('kelas.name') }}"
-                    class="mx-auto max-h-[46vh] w-full rounded-2xl object-contain object-center shadow-lg sm:max-h-[52vh] lg:max-h-[82vh]"
+                    width="1024"
+                    height="768"
+                    class="h-auto w-full rounded-2xl shadow-lg"
                 >
                 <figcaption class="mt-4 hidden text-white lg:block">
                     <p class="text-xs font-medium tracking-[0.18em] text-white/70 uppercase">Universitas Pamulang</p>
