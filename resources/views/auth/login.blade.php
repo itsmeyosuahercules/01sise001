@@ -1,13 +1,13 @@
 @extends('layouts.guest')
 
 @section('content')
-    <form method="POST" action="{{ route('login') }}" class="rounded-[28px] border border-white/60 bg-white/92 p-6 shadow-2xl ring-1 ring-white/40 backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_30px_60px_-20px_rgba(11,42,107,0.35)] sm:p-8">
+    <form method="POST" action="{{ route('login') }}" class="rounded-[28px] border border-white/60 bg-white/92 p-5 shadow-2xl ring-1 ring-white/40 backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_30px_60px_-20px_rgba(11,42,107,0.35)] sm:p-8">
         @csrf
         <x-brand />
-        <h2 class="mt-6 text-2xl font-semibold tracking-tight">Masuk ke kelas</h2>
-        <p class="mt-1 text-sm leading-6 text-ink/60">Papan kelas. Kabar, hadir, dan tanya dosen ada di sini.</p>
+        <h2 class="mt-4 text-xl font-semibold tracking-tight sm:mt-6 sm:text-2xl">Masuk ke kelas</h2>
+        <p class="mt-1 hidden text-sm leading-6 text-ink/60 sm:block">Papan kelas. Kabar, hadir, dan tanya dosen ada di sini.</p>
 
-        <div class="mt-5">
+        <div class="mt-4 sm:mt-5">
             <label class="block text-sm font-medium" for="nim">NIM</label>
             <div class="relative mt-1.5">
                 <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-ink/35">
@@ -23,7 +23,7 @@
                     inputmode="numeric"
                     autocomplete="username"
                     placeholder="Contoh 261091700008"
-                    class="w-full rounded-2xl border border-line bg-white py-3 pl-11 pr-3.5 text-base outline-none ring-navy/15 focus:border-navy focus:ring-4 sm:text-sm"
+                    class="w-full rounded-2xl border border-line bg-white py-2.5 pl-11 pr-3.5 text-base outline-none ring-navy/15 focus:border-navy focus:ring-4 sm:py-3 sm:text-sm"
                 >
             </div>
             @error('nim')
@@ -31,7 +31,7 @@
             @enderror
         </div>
 
-        <div class="mt-5">
+        <div class="mt-4">
             <label class="block text-sm font-medium" for="password">Kata sandi</label>
             <div class="relative mt-1.5">
                 <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-ink/35">
@@ -43,7 +43,7 @@
                     name="password"
                     required
                     autocomplete="current-password"
-                    class="w-full rounded-2xl border border-line bg-white py-3 pl-11 pr-3.5 text-base outline-none ring-navy/15 focus:border-navy focus:ring-4 sm:text-sm"
+                    class="w-full rounded-2xl border border-line bg-white py-2.5 pl-11 pr-3.5 text-base outline-none ring-navy/15 focus:border-navy focus:ring-4 sm:py-3 sm:text-sm"
                 >
             </div>
             @error('password')
@@ -51,14 +51,14 @@
             @enderror
         </div>
 
-        <label class="mt-5 flex items-center gap-2 text-sm text-ink/70">
+        <label class="mt-4 flex items-center gap-2 text-sm text-ink/70">
             <input type="checkbox" name="remember" class="rounded border-line">
             Ingat saya
         </label>
 
-        <x-btn type="submit" class="mt-6 w-full">Masuk</x-btn>
+        <x-btn type="submit" class="mt-4 w-full sm:mt-6">Masuk</x-btn>
 
-        <p class="mt-5 text-xs leading-5 text-ink/50">
+        <p class="mt-3 text-xs leading-5 text-ink/50 sm:mt-5">
             Masuk dengan NIM. Tanya ketua kelas kalau belum dapat kata sandi.
         </p>
     </form>
